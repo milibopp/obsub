@@ -69,7 +69,6 @@ class event(object):
         '''
         # Copy docstring from function
         self.__doc__ = function.__doc__
-
         # Use its name as key
         self._key = ' ' + function.__name__
 
@@ -112,11 +111,9 @@ class boundevent(object):
         self.__event_handlers = []
         self.__instance = weakref.ref(instance)
 
-
     @property
     def instance(self):
         return self.__instance()
-
 
     def __iadd__(self, function):
         '''
@@ -126,13 +123,10 @@ class boundevent(object):
             event handling function that registers to the event.
 
         '''
-
         # Add the function as a new event handler
         self.__event_handlers.append(function)
-
         # Return the boundevent instance itself for coherent syntax behaviour
         return self
-
 
     def __isub__(self, function):
         '''
@@ -143,13 +137,10 @@ class boundevent(object):
             function that needs to be removed from the list of event handlers.
 
         '''
-
         # Remove the function from the list of registered event handlers
         self.__event_handlers.remove(function)
-
         # Return the boundevent instance itself for coherent syntax behaviour
         return self
-
 
     def __call__(self, *args, **kwargs):
         '''
@@ -160,7 +151,6 @@ class boundevent(object):
         * **kwargs -- Keyword arguments given to the event handlers.
 
         '''
-
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
             f(self.instance, *args, **kwargs)
