@@ -11,9 +11,9 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 
 '''
 
-from weakref import WeakKeyDictionary
+import weakref
 
-# Function decorator approach
+
 class event(object):
     '''
     This class serves as a utility to decorate a function as an event.
@@ -110,7 +110,12 @@ class boundevent(object):
         '''
         # Create empty list of registered event handlers.
         self.__event_handlers = []
-        self.instance = instance
+        self.__instance = weakref.ref(instance)
+
+
+    @property
+    def instance(self):
+        return self.__instance()
 
 
     def __iadd__(self, function):
