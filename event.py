@@ -6,7 +6,7 @@ For further reference, see
 
 http://en.wikipedia.org/wiki/Observer_pattern
 
-The idea based on this thread:
+The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 
 '''
