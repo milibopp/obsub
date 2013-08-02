@@ -158,6 +158,5 @@ class boundevent(object):
 
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
-            new_args = tuple([self.instance]+list(args))
-            f(*new_args, **kwargs)
+            f(self.instance, *args, **kwargs)
 
