@@ -6,15 +6,12 @@ For further reference, see
 
 http://en.wikipedia.org/wiki/Observer_pattern
 
-The idea based on this thread:
+The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 
 '''
 
 from weakref import WeakKeyDictionary
-
-import counter
-
 
 # Function decorator approach
 class event(object):
@@ -76,9 +73,6 @@ class event(object):
         # Use its name as key
         self._key = ' ' + function.__name__
 
-        # Increase event registration counter
-        counter.getCounter("util.event.registered").value += 1
-
     def __get__(self, instance, owner):
         '''
         Overloaded __get__ method.  Defines the object resulting from
@@ -131,9 +125,6 @@ class boundevent(object):
         # Add the function as a new event handler
         self.__event_handlers.append(function)
 
-        # Increase the counter for registered event handlers by one
-        counter.getCounter("util.event.handler.registered").value += 1
-
         # Return the boundevent instance itself for coherent syntax behaviour
         return self
 
@@ -151,9 +142,6 @@ class boundevent(object):
         # Remove the function from the list of registered event handlers
         self.__event_handlers.remove(function)
 
-        # Decrease the counter for registered event handlers by one
-        counter.getCounter("util.event.handler.registered").value -= 1
-
         # Return the boundevent instance itself for coherent syntax behaviour
         return self
 
@@ -167,9 +155,6 @@ class boundevent(object):
         * **kwargs -- Keyword arguments given to the event handlers.
 
         '''
-
-        # Increase the counter for event calls by one
-        counter.getCounter("util.event.called").value += 1
 
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
