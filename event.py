@@ -151,7 +151,10 @@ class boundevent(object):
         * **kwargs -- Keyword arguments given to the event handlers.
 
         '''
+        # Create a hard ref to the instance to make sure it survives
+        # througout this function call
+        instance = self.instance
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
-            f(self.instance, *args, **kwargs)
+            f(instance, *args, **kwargs)
 
