@@ -174,3 +174,8 @@ class boundevent(object):
             f(instance, *args, **kwargs)
         return result
 
+# Execute the doctests if run from the command line.
+# Verbose tests: python event.py -v
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
