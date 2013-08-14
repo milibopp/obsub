@@ -30,14 +30,14 @@ class event(object):
     ...         pass
     ...
     ...     def do_something(self):
-    ...         print "Doing something..."
+    ...         print("Doing something...")
     ...         self.progress()
 
     A.progress is the event.  It is triggered within the method A.do_something.
     Now that we have a class with some event, let's create an event handler.
 
     >>> def handler(self):
-    ...     print "Hello %s!" % self.name
+    ...     print("Hello %s!" % self.name)
 
     This handler only greets the object that triggered the event by using its
     name attribute.  Let's create some instances of A and register our new
@@ -87,7 +87,7 @@ class event(object):
         try:
             # Try to return the dictionary entry corresponding to the key.
             return instance.__dict__[self._key]
-        except KeyError, exc:
+        except KeyError:
             # On the first try this raises a KeyError,
             # The error is caught to write the new entry into the instance dictionary.
             # The new entry is an instance of boundevent, which exhibits the event behaviour.
