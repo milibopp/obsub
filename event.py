@@ -11,6 +11,7 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 
 '''
 
+import functools
 import weakref
 
 
@@ -65,6 +66,12 @@ class event(object):
     Traceback (most recent call last):
     TypeError: progress() missing 1 required positional argument: 'first'
 
+    Class based access is possible as well:
+
+    >>> A.progress(a, "Hello", "Y")
+    Doing something...
+    Hello Foo and Y!
+
     '''
 
     def __init__(self, function):
@@ -94,6 +101,11 @@ class event(object):
         * owner -- The owner class.
 
         '''
+        # this case corresponds to access via the owner class:
+        if instance is None:
+            def wrapper(instance, *args, **kwargs):
+                return self.__get__(instance, owner)(*args, **kwargs)
+            return wrapper
         try:
             # Try to return the dictionary entry corresponding to the key.
             return instance.__dict__[self._key]
