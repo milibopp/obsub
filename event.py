@@ -81,8 +81,8 @@ class event(object):
         * function -- the function
 
         '''
-        # Copy docstring from function
-        self.__doc__ = function.__doc__
+        # Copy docstring and other attributes from function
+        functools.update_wrapper(self, function)
         # Use its name as key
         self._key = ' ' + function.__name__
         # Used to enforce call signature even when no slot is connected.
@@ -103,6 +103,7 @@ class event(object):
         '''
         # this case corresponds to access via the owner class:
         if instance is None:
+            @functools.wraps(self._function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
             return wrapper
@@ -114,6 +115,7 @@ class event(object):
             # The error is caught to write the new entry into the instance dictionary.
             # The new entry is an instance of boundevent, which exhibits the event behaviour.
             be = instance.__dict__[self._key] = boundevent(instance, self._function)
+            functools.update_wrapper(be, self._function)
             return be
 
 
