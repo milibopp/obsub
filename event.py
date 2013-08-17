@@ -12,6 +12,9 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 '''
 
 import functools
+import inspect
+
+from inspect import Parameter, Signature
 
 
 class event(object):
@@ -96,6 +99,7 @@ class event(object):
         '''
         # Copy docstring and other attributes from function
         functools.update_wrapper(self, function)
+        self.__signature__ = inspect.signature(function)
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
@@ -128,9 +132,10 @@ class event(object):
             @functools.wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
-            return wrapper
         else:
-            return functools.wraps(self.__function)(boundevent(instance, self.__function))
+            wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
+        wrapper.__signature__ = self.__signature__
+        return wrapper
 
 
 class boundevent(object):
