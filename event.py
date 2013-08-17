@@ -12,7 +12,6 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 '''
 
 import functools
-import weakref
 
 
 class event(object):
@@ -72,6 +71,20 @@ class event(object):
     Doing something...
     Hello Foo and Y!
 
+    Bound methods keep the instance alive:
+
+    >>> f = a.progress
+    >>> from weakref import ref
+    >>> wr = ref(a)
+    >>> assert wr() is not None
+    >>> del a
+    >>> assert wr() is not None
+    >>> f("Hi", "Z")
+    Doing something...
+    Hi Foo and Z!
+    >>> del f
+    >>> assert wr() is None
+
     '''
 
     def __init__(self, function):
@@ -83,11 +96,20 @@ class event(object):
         '''
         # Copy docstring and other attributes from function
         functools.update_wrapper(self, function)
-        # Use its name as key
-        self._key = ' ' + function.__name__
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
-        self._function = function
+        self.__function = function
+
+    def __set__(self, instance, value):
+        '''
+        This is a NOP preventing that a boundevent instance is stored.
+
+        This prevents  operations like  `a.progress += handler`  to have
+        side effects that result in a cyclic reference.
+
+        http://stackoverflow.com/questions/18287336/memory-leak-when-invoking-iadd-via-get-without-using-temporary
+        '''
+        pass
 
     def __get__(self, instance, owner):
         '''
@@ -103,20 +125,12 @@ class event(object):
         '''
         # this case corresponds to access via the owner class:
         if instance is None:
-            @functools.wraps(self._function)
+            @functools.wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
             return wrapper
-        try:
-            # Try to return the dictionary entry corresponding to the key.
-            return instance.__dict__[self._key]
-        except KeyError:
-            # On the first try this raises a KeyError,
-            # The error is caught to write the new entry into the instance dictionary.
-            # The new entry is an instance of boundevent, which exhibits the event behaviour.
-            be = instance.__dict__[self._key] = boundevent(instance, self._function)
-            functools.update_wrapper(be, self._function)
-            return be
+        else:
+            return functools.wraps(self.__function)(boundevent(instance, self.__function))
 
 
 class boundevent(object):
@@ -131,14 +145,15 @@ class boundevent(object):
         * instance -- the instance whose member the event is
 
         '''
-        # Create empty list of registered event handlers.
-        self.__event_handlers = []
-        self.__instance = weakref.ref(instance)
+        self.instance = instance
         self.__function = function
+        self.__key = function.__name__
 
     @property
-    def instance(self):
-        return self.__instance()
+    def __event_handlers(self):
+        if self.__key not in self.instance.__dict__:
+            self.instance.__dict__[self.__key] = []
+        return self.instance.__dict__[self.__key]
 
     def __iadd__(self, function):
         '''
@@ -176,15 +191,12 @@ class boundevent(object):
         * **kwargs -- Keyword arguments given to the event handlers.
 
         '''
-        # Create a hard ref to the instance to make sure it survives
-        # througout this function call
-        instance = self.instance
         # Enforce signature and possibly execute entry code. This makes sure
         # any inconsistent call will be caught immediately, independent of
         # connected handlers.
-        result = self.__function(instance, *args, **kwargs)
+        result = self.__function(self.instance, *args, **kwargs)
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
-            f(instance, *args, **kwargs)
+            f(self.instance, *args, **kwargs)
         return result
 
