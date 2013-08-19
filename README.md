@@ -17,6 +17,12 @@ Thus it is [licensed as CC0](http://creativecommons.org/publicdomain/zero/1.0/),
 so basically do-whatever-you-want to the extent legally possible.
 
 
+## Continuous integration
+
+For the fun of it, [Travis CI](https://travis-ci.org/aepsil0n/event) is used
+for continuous integration.
+
+
 ## Credits
 
 Thanks to Jason Orendorff on for the idea on stackoverflow. I also want to
