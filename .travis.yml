@@ -6,4 +6,4 @@ python:
   - "3.2"
   - "3.3"
 #  - "pypy" is not currently supported
-script: nosetests
+script: python setup.py nosetests
