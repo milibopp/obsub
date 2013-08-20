@@ -34,6 +34,7 @@ class event(object):
 
     A.progress is the event.  It is triggered after executing the code in the
     decorated progress routine.
+
     Now that we have a class with some event, let's create an event handler.
 
     >>> def handler(self, first, second):
@@ -94,7 +95,7 @@ class event(object):
         '''
         Constructor.
 
-        * function -- the function
+        * function -- The function to be wrapped by the decorator.
 
         '''
         # Copy docstring and other attributes from function
@@ -112,6 +113,7 @@ class event(object):
         side effects that result in a cyclic reference.
 
         http://stackoverflow.com/questions/18287336/memory-leak-when-invoking-iadd-via-get-without-using-temporary
+
         '''
         pass
 
@@ -139,9 +141,7 @@ class event(object):
 
 
 class boundevent(object):
-    '''
-    Private helper class for event system.
-    '''
+    '''Private helper class for event system.'''
 
     def __init__(self, instance, function):
         '''
