@@ -1,5 +1,7 @@
 # event
 
+[![Build Status](https://api.travis-ci.org/aepsil0n/event.png?branch=master)](https://travis-ci.org/aepsil0n/event)
+
 Small python module that implements the observer pattern via a decorator.
 
 
