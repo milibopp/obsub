@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='obsub',
-    version='0.1.0',
+    version='0.1.1',
     description='Implementation of the observer pattern via a decorator',
     author='Eduard Bopp',
     author_email='eduard.bopp@aepsil0n.de',
