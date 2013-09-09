@@ -1,4 +1,4 @@
-# event
+# obsub
 
 [![Build Status](https://api.travis-ci.org/aepsil0n/event.png?branch=master)](https://travis-ci.org/aepsil0n/event)
 
