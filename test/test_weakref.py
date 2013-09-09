@@ -2,11 +2,12 @@
 These tests that the event handling mechanism does not produce memory leaks.
 This could in principle happen, since it introduces a cyclic dependency that
 might prevent garbage collection.
+
 '''
 
 import weakref
 
-from event import event
+from obsub import event
 
 
 def test_memory_leak():

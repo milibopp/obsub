@@ -2,13 +2,13 @@
 
 from setuptools import setup
 
-setup(name='Event',
+setup(name='obsub',
     version='0.1.0',
     description='Implementation of the observer pattern via a decorator',
     author='Eduard Bopp',
     author_email='eduard.bopp@aepsil0n.de',
-    url='https://github.com/aepsil0n/event',
-    py_modules=['event',],
+    url='https://github.com/aepsil0n/obsub',
+    py_modules=['obsub',],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
