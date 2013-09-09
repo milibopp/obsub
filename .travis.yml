@@ -11,4 +11,4 @@ script:
   # test package creation and installation
   - python setup.py sdist --formats=zip
   - find ./dist -iname "*.zip" -print0 | xargs -0 pip install
-  - python -c "import event"
+  - python -c "import obsub"
