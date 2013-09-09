@@ -1,6 +1,6 @@
 # obsub
 
-[![Build Status](https://api.travis-ci.org/aepsil0n/event.png?branch=master)](https://travis-ci.org/aepsil0n/event)
+[![Build Status](https://api.travis-ci.org/aepsil0n/obsub.png?branch=master)](https://travis-ci.org/aepsil0n/obsub)
 
 Small python module that implements the observer pattern via a decorator.
 
@@ -19,9 +19,43 @@ Thus it is [licensed as CC0](http://creativecommons.org/publicdomain/zero/1.0/),
 so basically do-whatever-you-want to the extent legally possible.
 
 
+## Installation
+
+*obsub* is available on PyPI, so you can simply install it using
+`pip install obsub` or you do it manually using `setup.py` as with any python
+package.
+
+
+## Usage
+
+The `event` decorator from the `obsub` module is used as follows:
+
+```python
+from obsub import event
+
+# Define a class with an event
+class Subject(object):
+    @event
+    def on_stuff(self, arg):
+        print('Stuff {} happens'.format(arg))
+
+# Now define an event handler, the observer
+def handler(subject, arg):
+    print('Stuff {} is handled'.format(arg))
+
+# Wire everything up...
+sub = Subject()
+sub.on_stuff += handler
+
+# And try it!
+sub.on_stuff('foo')
+
+```
+
+
 ## Continuous integration
 
-For the fun of it, [Travis CI](https://travis-ci.org/aepsil0n/event) is used
+For the fun of it, [Travis CI](https://travis-ci.org/aepsil0n/obsub) is used
 for continuous integration.
 
 
