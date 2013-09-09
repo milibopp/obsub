@@ -35,6 +35,7 @@ from obsub import event
 
 # Define a class with an event
 class Subject(object):
+    @event
     def on_stuff(self, arg):
         print('Stuff {} happens'.format(arg))
 
