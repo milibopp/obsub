@@ -1,6 +1,6 @@
 # obsub
 
-[![Build Status](https://api.travis-ci.org/aepsil0n/event.png?branch=master)](https://travis-ci.org/aepsil0n/event)
+[![Build Status](https://api.travis-ci.org/aepsil0n/obsub.png?branch=master)](https://travis-ci.org/aepsil0n/obsub)
 
 Small python module that implements the observer pattern via a decorator.
 
@@ -21,7 +21,7 @@ so basically do-whatever-you-want to the extent legally possible.
 
 ## Continuous integration
 
-For the fun of it, [Travis CI](https://travis-ci.org/aepsil0n/event) is used
+For the fun of it, [Travis CI](https://travis-ci.org/aepsil0n/obsub) is used
 for continuous integration.
 
 
