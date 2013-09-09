@@ -14,6 +14,9 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 import functools
 
 
+__all__ = ['event']
+
+
 class event(object):
     '''
     This class serves as a utility to decorate a function as an event.
