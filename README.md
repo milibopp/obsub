@@ -1,7 +1,5 @@
 # obsub
 
-[![Build Status](https://api.travis-ci.org/aepsil0n/obsub.png?branch=master)](https://travis-ci.org/aepsil0n/obsub)
-
 Small python module that implements the observer pattern via a decorator.
 
 
@@ -56,7 +54,10 @@ sub.on_stuff('foo')
 ## Continuous integration
 
 For the fun of it, [Travis CI](https://travis-ci.org/aepsil0n/obsub) is used
-for continuous integration.
+for continuous integration. As long as everything is fine, the button below
+should be green and shiny!
+
+[![Build Status](https://api.travis-ci.org/aepsil0n/obsub.png?branch=master)](https://travis-ci.org/aepsil0n/obsub)
 
 
 ## Credits
