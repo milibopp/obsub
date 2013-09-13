@@ -86,7 +86,14 @@ class event(object):
     >>> f("Hi", "Z")
     Doing something...
     Hi Foo and Z!
+
+    If we delete the hard reference to the bound method and run the garbage
+    collector (to make sure it is run at all), the object will be gone:
+
     >>> del f
+    >>> import gc
+    >>> gc.collect()
+    0
     >>> assert wr() is None
 
     '''
