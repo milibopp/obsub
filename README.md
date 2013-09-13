@@ -50,6 +50,14 @@ sub.on_stuff('foo')
 
 ```
 
+You should now get both print messages from the event itself and the event
+handler function, like so:
+
+```
+Stuff foo happens
+Stuff foo is handled
+```
+
 
 ## Continuous integration
 
