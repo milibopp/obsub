@@ -2,11 +2,13 @@
 These tests that the event handling mechanism does not produce memory leaks.
 This could in principle happen, since it introduces a cyclic dependency that
 might prevent garbage collection.
+
 '''
 
 import weakref
+import gc
 
-from event import event
+from obsub import event
 
 
 def test_memory_leak():
@@ -35,8 +37,12 @@ def test_memory_leak():
     # that there are very subtle ways to delete an instance:
     a = None
 
+    # Trigger the garbage collection manually
+    gc.collect()
+
     # after deletion it should be dead
     assert wr() is None
+
 
 def test_object_stays_alive_during_handler_execution():
 
@@ -71,7 +77,8 @@ def test_object_stays_alive_during_handler_execution():
     wr = weakref.ref(b.a)
     b.a.on_blubb()
 
-    # make sure, b.a has been deleted after event handling:
+    # Trigger the garbage collection manually
+    gc.collect()
+
+    # make sure, b.a has been deleted after event handling
     assert wr() is None
-
-

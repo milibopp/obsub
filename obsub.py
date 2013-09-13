@@ -17,6 +17,9 @@ import inspect
 from inspect import Parameter, Signature
 
 
+__all__ = ['event']
+
+
 class event(object):
     '''
     This class serves as a utility to decorate a function as an event.
@@ -86,7 +89,14 @@ class event(object):
     >>> f("Hi", "Z")
     Doing something...
     Hi Foo and Z!
+
+    If we delete the hard reference to the bound method and run the garbage
+    collector (to make sure it is run at all), the object will be gone:
+
     >>> del f
+    >>> import gc
+    >>> gc.collect(), # doctest: +ELLIPSIS
+    (...,)
     >>> assert wr() is None
 
     '''
