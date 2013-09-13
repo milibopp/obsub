@@ -67,6 +67,13 @@ should be green and shiny!
 
 [![Build Status](https://api.travis-ci.org/aepsil0n/obsub.png?branch=master)](https://travis-ci.org/aepsil0n/obsub)
 
+The continuous integration ensures that our tests run on the following
+platforms:
+
+* Python 2.5, 2.6, 2.7
+* Python 3.2, 3.3
+* pypy
+
 
 ## Contributing
 
