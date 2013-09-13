@@ -6,6 +6,7 @@ might prevent garbage collection.
 '''
 
 import weakref
+import gc
 
 from obsub import event
 
@@ -36,8 +37,12 @@ def test_memory_leak():
     # that there are very subtle ways to delete an instance:
     a = None
 
+    # Trigger the garbage collection manually
+    gc.collect()
+
     # after deletion it should be dead
     assert wr() is None
+
 
 def test_object_stays_alive_during_handler_execution():
 
@@ -72,7 +77,8 @@ def test_object_stays_alive_during_handler_execution():
     wr = weakref.ref(b.a)
     b.a.on_blubb()
 
-    # make sure, b.a has been deleted after event handling:
+    # Trigger the garbage collection manually
+    gc.collect()
+
+    # make sure, b.a has been deleted after event handling
     assert wr() is None
-
-
