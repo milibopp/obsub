@@ -60,6 +60,17 @@ should be green and shiny!
 [![Build Status](https://api.travis-ci.org/aepsil0n/obsub.png?branch=master)](https://travis-ci.org/aepsil0n/obsub)
 
 
+## Contributing
+
+*obsub* is developed on [github](https://github.com/aepsil0n/obsub). Feel free to
+contribute patches as pull requests as you see fit.
+
+Try to be consistent with PEP 8 guidelines as far as possible and test
+everything. Otherwise, your commit messages should start with a capitalized
+verb for consistency. Unless your modification is completely trivial, also add
+a message body to your commit.
+
+
 ## Credits
 
 Thanks to Jason Orendorff on for the idea on stackoverflow. I also want to
