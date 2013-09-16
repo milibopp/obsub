@@ -18,4 +18,5 @@ setup(name='obsub',
         'Topic :: Software Development',
     ],
     license='Public Domain',
+    install_requires=['black-magic',],
     )
