@@ -30,7 +30,7 @@ class event(object):
     ...         self.name = name
     ...
     ...     @event
-    ...     def progress(self, first, second):
+    ...     def progress(self, first, second="everybody else"):
     ...         print("Doing something...")
 
     A.progress is the event.  It is triggered after executing the code in the
@@ -75,6 +75,12 @@ class event(object):
     >>> A.progress(a, "Hello", "Y")
     Doing something...
     Hello Foo and Y!
+
+    You can even make use of default parameters
+
+    >>> a.progress("Good bye")
+    Doing something...
+    Good bye Foo and everybody else!
 
     Bound methods keep the instance alive:
 
