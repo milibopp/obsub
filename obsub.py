@@ -12,6 +12,7 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 '''
 
 import functools
+from black_magic.decorator import wraps
 
 
 __all__ = ['event']
@@ -111,6 +112,12 @@ class event(object):
         # Can also execute code (called before handlers)
         self.__function = function
 
+        class _boundevent(boundevent):
+            @wraps(function)
+            def __call__(self, *args, **kwargs):
+                boundevent.__call__(self, *args, **kwargs)
+        self.__boundevent = _boundevent
+
     def __set__(self, instance, value):
         '''
         This is a NOP preventing that a boundevent instance is stored.
@@ -137,12 +144,12 @@ class event(object):
         '''
         # this case corresponds to access via the owner class:
         if instance is None:
-            @functools.wraps(self.__function)
+            @wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
             return wrapper
         else:
-            return functools.wraps(self.__function)(boundevent(instance, self.__function))
+            return functools.wraps(self.__function)(self.__boundevent(instance, self.__function))
 
 
 class boundevent(object):
