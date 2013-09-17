@@ -2,9 +2,20 @@
 
 from setuptools import setup
 
+# Read README.rst for PyPI
+# you should convert it by hand like so: pandoc README.md -o README.rst
+try:
+    f = open('README.rst')
+    long_description = f.read()
+    f.close()
+except:
+    long_description = None
+
+
 setup(name='obsub',
     version='0.1.1',
     description='Implementation of the observer pattern via a decorator',
+    long_description=long_description,
     author='Eduard Bopp',
     author_email='eduard.bopp@aepsil0n.de',
     url='https://github.com/aepsil0n/obsub',

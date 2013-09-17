@@ -92,8 +92,7 @@ class event(object):
 
     >>> del f
     >>> import gc
-    >>> gc.collect(), # doctest: +ELLIPSIS
-    (...,)
+    >>> c=gc.collect()
     >>> assert wr() is None
 
     '''
