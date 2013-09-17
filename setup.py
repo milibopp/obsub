@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
 from setuptools import setup
-from distutils.spawn import find_executable
 
-# Convert markdown to reST for PyPI:
-pandoc = find_executable('pandoc')
-if pandoc:
-    from subprocess import check_output
-    long_description = check_output(
-            [pandoc, 'README.md', '-t', 'rst'],
-            universal_newlines=True)
-else:
+# Read README.rst for PyPI
+# you should convert it by hand like so: pandoc README.md -o README.rst
+try:
+    f = open('README.rst')
+    long_description = f.read()
+    f.close()
+except:
     long_description = None
 
 
