@@ -63,6 +63,7 @@ def test_object_stays_alive_during_handler_execution():
             # delete the A-instance
             del self.a
             a.deleted = True
+            del a
             gc.collect()
 
     def handler(a):
