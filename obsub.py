@@ -78,10 +78,10 @@ class event(object):
     Bound methods keep the instance alive:
 
     >>> f = a.progress
-    >>> from weakref import ref
-    >>> wr = ref(a)
-    >>> assert wr() is not None
+    >>> import weakref, gc
+    >>> wr = weakref.ref(a)
     >>> del a
+    >>> c=gc.collect()
     >>> assert wr() is not None
     >>> f("Hi", "Z")
     Doing something...
@@ -91,7 +91,6 @@ class event(object):
     collector (to make sure it is run at all), the object will be gone:
 
     >>> del f
-    >>> import gc
     >>> c=gc.collect()
     >>> assert wr() is None
 
