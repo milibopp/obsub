@@ -29,4 +29,5 @@ setup(name='obsub',
         'Topic :: Software Development',
     ],
     license='Public Domain',
+    test_suite='nose.collector',
     )
