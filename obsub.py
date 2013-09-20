@@ -14,8 +14,15 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 import functools
 import inspect
 
-from inspect import Parameter, Signature
-
+try:
+    # use python3 signatures if available
+    # this takes care of enforcing the correct signature at call time and 
+    # provides the correct default arguments
+    from inspect import signature
+except ImportError:
+    # python2 has no support for signatures
+    def signature(fn):
+        return None
 
 __all__ = ['event']
 
@@ -110,7 +117,7 @@ class event(object):
         '''
         # Copy docstring and other attributes from function
         functools.update_wrapper(self, function)
-        self.__signature__ = inspect.signature(function)
+        self.__signature__ = signature(function)
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
