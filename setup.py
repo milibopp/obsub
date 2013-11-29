@@ -3,13 +3,9 @@
 from setuptools import setup
 
 # Read README.rst for PyPI
-# you should convert it by hand like so: pandoc README.md -o README.rst
-try:
-    f = open('README.rst')
-    long_description = f.read()
-    f.close()
-except:
-    long_description = None
+f = open('README.rst')
+long_description = f.read()
+f.close()
 
 
 setup(name='obsub',
