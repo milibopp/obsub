@@ -167,7 +167,7 @@ class boundevent(object):
         '''
         self.instance = instance
         self.__function = function
-        self.__key = function.__name__
+        self.__key = ' ' + function.__name__
 
     @property
     def __event_handlers(self):
