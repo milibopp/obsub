@@ -2,9 +2,16 @@
 
 from setuptools import setup
 
+# Read README.rst for PyPI
+f = open('README.rst')
+long_description = f.read()
+f.close()
+
+
 setup(name='obsub',
     version='0.1.1',
     description='Implementation of the observer pattern via a decorator',
+    long_description=long_description,
     author='Emilia Bopp',
     author_email='Emilia.bopp@aepsil0n.de',
     url='https://github.com/aepsil0n/obsub',
@@ -18,4 +25,5 @@ setup(name='obsub',
         'Topic :: Software Development',
     ],
     license='Public Domain',
+    test_suite='nose.collector',
     )

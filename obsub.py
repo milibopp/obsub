@@ -12,7 +12,17 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 '''
 
 import functools
+import inspect
 
+try:
+    # use python3 signatures if available
+    # this takes care of enforcing the correct signature at call time and 
+    # provides the correct default arguments
+    from inspect import signature
+except ImportError:
+    # python2 has no support for signatures
+    def signature(fn):
+        return None
 
 __all__ = ['event']
 
@@ -78,15 +88,20 @@ class event(object):
     Bound methods keep the instance alive:
 
     >>> f = a.progress
-    >>> from weakref import ref
-    >>> wr = ref(a)
-    >>> assert wr() is not None
+    >>> import weakref, gc
+    >>> wr = weakref.ref(a)
     >>> del a
+    >>> c=gc.collect()
     >>> assert wr() is not None
     >>> f("Hi", "Z")
     Doing something...
     Hi Foo and Z!
+
+    If we delete the hard reference to the bound method and run the garbage
+    collector (to make sure it is run at all), the object will be gone:
+
     >>> del f
+    >>> c=gc.collect()
     >>> assert wr() is None
 
     '''
@@ -100,6 +115,7 @@ class event(object):
         '''
         # Copy docstring and other attributes from function
         functools.update_wrapper(self, function)
+        self.__signature__ = signature(function)
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
@@ -133,9 +149,10 @@ class event(object):
             @functools.wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
-            return wrapper
         else:
-            return functools.wraps(self.__function)(boundevent(instance, self.__function))
+            wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
+        wrapper.__signature__ = self.__signature__
+        return wrapper
 
 
 class boundevent(object):
