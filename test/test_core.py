@@ -20,8 +20,11 @@ class NewStyle(object):
         self.count += 1
 
 class OldStyle:
-    __init__ = NewStyle.__init__
-    emit = NewStyle.emit
+    def __init__(self):
+        self.count = 0
+    @event
+    def emit(self, first, second):
+        self.count += 1
 
 class Observer(object):
     def __init__(self, call_stack):
