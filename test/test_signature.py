@@ -6,7 +6,7 @@ is only possible for python3.
 import sys
 
 try:
-    from test_py3.test_signature import *
+    from test.py3.test_signature import *
 except ImportError:
     __test__ = False
 
