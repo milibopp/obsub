@@ -8,7 +8,8 @@ long_description = f.read()
 f.close()
 
 
-setup(name='obsub',
+setup(
+    name='obsub',
     version='0.1.1',
     description='Implementation of the observer pattern via a decorator',
     long_description=long_description,
@@ -25,5 +26,6 @@ setup(name='obsub',
         'Topic :: Software Development',
     ],
     license='Public Domain',
+    tests_require='nose',
     test_suite='nose.collector',
-    )
+)
