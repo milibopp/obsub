@@ -7,8 +7,8 @@ decorator.
 Description
 -----------
 
-This is based on a [thread on stackoverflow]
-(http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips)
+This is based on a `thread on stackoverflow
+<http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips>`_
 (the example of C#-like events by Jason Orendorff), so I don't take any
 credit for the idea. I merely made a fancy module with documentation and
 tests out of it, since I needed it in a bigger project. It is quite
