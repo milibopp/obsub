@@ -72,9 +72,12 @@ button below should be green and shiny!
 The continuous integration ensures that our tests run on the following
 platforms:
 
--  Python 2.5, 2.6, 2.7
+-  Python 2.6, 2.7
 -  Python 3.2, 3.3
 -  pypy
+
+It might also work on Python 2.5, but is not automatically tested with this
+version.
 
 Contributing
 ------------
