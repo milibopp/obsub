@@ -3,11 +3,10 @@
 from setuptools import setup
 
 # Read README.rst for PyPI
-f = open('README.rst')
-long_description = f.read()
-f.close()
+with open('README.rst') as f:
+    long_description = f.read()
 
-
+# Package setup
 setup(
     name='obsub',
     version='0.1.1',
