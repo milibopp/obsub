@@ -79,6 +79,10 @@ platforms:
 It might also work on Python 2.5, but is not automatically tested with this
 version.
 
+We also track the coverage of our tests with coveralls.io
+
+|Coverage|
+
 Contributing
 ------------
 
@@ -98,3 +102,5 @@ to thank @coldfix and @Moredread for contributions and feedback.
 
 .. |Build Status| image:: https://api.travis-ci.org/aepsil0n/obsub.png?branch=master
    :target: https://travis-ci.org/aepsil0n/obsub
+.. |Coverage| image:: https://coveralls.io/repos/aepsil0n/obsub/badge.png?branch=master
+   :target: https://coveralls.io/r/aepsil0n/obsub
