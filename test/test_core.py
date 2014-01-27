@@ -62,6 +62,7 @@ class TestCore(unittest.TestCase):
         src = self.cls()
         obs = self.observer(src)
         src.emit -= obs
+        src.emit("something", "arbitrary")
         self.check_stack([])
 
     def test_multiple_handlers(self):
