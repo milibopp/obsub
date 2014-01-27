@@ -12,7 +12,9 @@ break backwards compatibility.
 In addition, there are quite a number of changes that mostly concern
 developers.
 
-- Function signatures are now preserved correctly by the event decorator.
+- Function signatures are now preserved correctly by the event decorator. This
+  is true only for python3. On python2 there is no support for default
+  arguments, currently
 - Some fixes to memory handling and tests thereof. This includes a more generic
   handling of the garbage collection process within the test suite to make it
   pass on pypy, too.
