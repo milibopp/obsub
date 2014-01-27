@@ -19,7 +19,7 @@ try:
     # this takes care of enforcing the correct signature at call time and 
     # provides the correct default arguments
     from inspect import signature
-except ImportError:
+except ImportError: # pragma: no cover
     # python2 has no support for signatures
     def signature(fn):
         return None

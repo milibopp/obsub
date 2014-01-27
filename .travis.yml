@@ -7,5 +7,8 @@ python:
   - "pypy"
 install:
   - pip install . --use-mirrors
+  - pip install coveralls --use-mirrors
 script:
-  - python setup.py nosetests
+  - coverage run --source=obsub setup.py nosetests
+after_success:
+  coveralls
