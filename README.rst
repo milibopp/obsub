@@ -1,7 +1,7 @@
 obsub
 =====
 
-|Build Status| |Version| |Downloads| |License|
+|Build Status| |Coverage| |Version| |Downloads| |License|
 
 Small python module that implements the observer pattern via a
 decorator.
