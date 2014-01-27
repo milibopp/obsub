@@ -1,8 +1,8 @@
 Changelog
-=========
+---------
 
 v0.2
-----
+~~~~
 
 From a user perspective the preservation of function signatures and a couple of
 bug fixes are probably most relevant. Python 2.5 is no longer tested by
@@ -28,13 +28,13 @@ developers.
 
 
 v0.1.1
-------
+~~~~~~
 
 - Add __all__ attribute to module
 - Fix a couple of documentation issues
 
 
 v0.1
-----
+~~~~
 
 *Initial release*
