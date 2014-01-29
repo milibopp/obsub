@@ -6,6 +6,7 @@ obsub
 Small python module that implements the observer pattern via a
 decorator.
 
+
 Description
 -----------
 
@@ -21,12 +22,14 @@ Thus it is `licensed as
 CC0 <http://creativecommons.org/publicdomain/zero/1.0/>`__, so basically
 do-whatever-you-want to the extent legally possible.
 
+
 Installation
 ------------
 
 *obsub* is available on PyPI, so you can simply install it using
 ``pip install obsub`` or you do it manually using ``setup.py`` as with
 any python package.
+
 
 Usage
 -----
@@ -62,6 +65,7 @@ event handler function, like so:
     Stuff foo happens
     Stuff foo is handled
 
+
 Continuous integration
 ----------------------
 
@@ -89,6 +93,7 @@ Use `coverage <https://pypi.python.org/pypi/coverage>`__ to generate local
 coverage reports like this:
 
 ::
+
     coverage run setup.py nosetests
 
 Note: on some platforms (e.g. Ubuntu) the executable is called
@@ -105,6 +110,7 @@ Try to be consistent with PEP 8 guidelines as far as possible and test
 everything. Otherwise, your commit messages should start with a
 capitalized verb for consistency. Unless your modification is completely
 trivial, also add a message body to your commit.
+
 
 Credits
 -------
