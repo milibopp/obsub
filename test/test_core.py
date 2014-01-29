@@ -57,6 +57,14 @@ class TestCore(unittest.TestCase):
         src.emit("Hello", "World")
         self.check_stack([(obs, 0, src, "Hello", "World")])
 
+    def test_remove_handler(self):
+        """Removal of event handlers works correctly."""
+        src = self.cls()
+        obs = self.observer(src)
+        src.emit -= obs
+        src.emit("something", "arbitrary")
+        self.check_stack([])
+
     def test_multiple_handlers(self):
         """Multiple handlers are invoked in correct order."""
         src = self.cls()
