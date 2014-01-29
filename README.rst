@@ -108,6 +108,7 @@ send an email one of us:
 
 - `Emilia Bopp <Emilia.bopp@aepsil0n.de>`__
 - `André-Patrick Bubel <code@andre-bubel.de>`__
+- `Thomas Gläßle <t_glaessle@gmx.de>`__
 
 Feel free to contribute patches as pull requests as you see fit. Try to be
 consistent with PEP 8 guidelines as far as possible and test everything.
