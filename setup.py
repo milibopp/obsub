@@ -10,7 +10,7 @@ f.close()
 
 setup(
     name='obsub',
-    version='0.1.1',
+    version='0.2',
     description='Implementation of the observer pattern via a decorator',
     long_description=long_description,
     author='Emilia Bopp',
