@@ -2,10 +2,14 @@
 
 from setuptools import setup
 
-# Read README.rst for PyPI
-f = open('README.rst')
-long_description = f.read()
-f.close()
+# Create a front page for PyPI:
+long_description = None
+try:
+    long_description = open('README.rst').read()
+    long_description += '\n' + open('CHANGELOG.rst').read()
+except IOError:
+    # some file is not available - just use what we got so far
+    pass
 
 
 setup(

@@ -1,8 +1,8 @@
 Changelog
-=========
+---------
 
 v0.2
-----
+~~~~
 
 From a user perspective the preservation of function signatures and a couple of
 bug fixes are probably most relevant. Python 2.5 is no longer tested by
@@ -12,7 +12,9 @@ break backwards compatibility.
 In addition, there are quite a number of changes that mostly concern
 developers.
 
-- Function signatures are now preserved correctly by the event decorator.
+- Function signatures are now preserved correctly by the event decorator. This
+  is true only for python3. On python2 there is no support for default
+  arguments, currently
 - Some fixes to memory handling and tests thereof. This includes a more generic
   handling of the garbage collection process within the test suite to make it
   pass on pypy, too.
@@ -28,13 +30,13 @@ developers.
 
 
 v0.1.1
-------
+~~~~~~
 
 - Add __all__ attribute to module
 - Fix a couple of documentation issues
 
 
 v0.1
-----
+~~~~
 
 *Initial release*
