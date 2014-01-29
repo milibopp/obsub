@@ -95,16 +95,27 @@ Note: on some platforms (e.g. Ubuntu) the executable is called
 ``python-coverage``.
 
 
-Contributing
-------------
+Contribution and feedback
+-------------------------
 
 *obsub* is developed on `github <https://github.com/aepsil0n/obsub>`__.
-Feel free to contribute patches as pull requests as you see fit.
 
-Try to be consistent with PEP 8 guidelines as far as possible and test
-everything. Otherwise, your commit messages should start with a
-capitalized verb for consistency. Unless your modification is completely
-trivial, also add a message body to your commit.
+If you have any questions about this software or encounter bugs, you're welcome
+to open a `new issue on github <https://github.com/aepsil0n/obsub/issues/new>`__.
+
+In case you do not want to use github for some reason, you can alternatively
+send an email one of us:
+
+- `Eduard Bopp <eduard.bopp@aepsil0n.de>`__
+- `André-Patrick Bubel <code@andre-bubel.de>`__
+- `Thomas Gläßle <t_glaessle@gmx.de>`__
+
+Feel free to contribute patches as pull requests as you see fit. Try to be
+consistent with PEP 8 guidelines as far as possible and test everything.
+Otherwise, your commit messages should start with a capitalized verb for
+consistency. Unless your modification is completely trivial, also add a message
+body to your commit.
+
 
 Credits
 -------
