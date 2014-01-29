@@ -85,6 +85,16 @@ We also track the coverage of our tests with coveralls.io
 
 |Coverage|
 
+Use `coverage <https://pypi.python.org/pypi/coverage>`__ to generate local
+coverage reports like this:
+
+::
+    coverage run setup.py nosetests
+
+Note: on some platforms (e.g. Ubuntu) the executable is called
+``python-coverage``.
+
+
 Contributing
 ------------
 
