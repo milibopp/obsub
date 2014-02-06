@@ -25,6 +25,7 @@ except ImportError: # pragma: no cover
         return None
 
 __all__ = ['event']
+__version__ = '0.2'
 
 
 class event(object):
@@ -219,4 +220,3 @@ class boundevent(object):
         for f in self.__event_handlers[:]:
             f(self.instance, *args, **kwargs)
         return result
-
