@@ -12,7 +12,6 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 '''
 
 import functools
-import inspect
 
 try:
     # use python3 signatures if available
@@ -120,6 +119,7 @@ class event(object):
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
+        self.__key = ' ' + function.__name__
 
     def __set__(self, instance, value):
         '''
@@ -150,9 +150,14 @@ class event(object):
             @functools.wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
+            wrapper.__signature__ = self.__signature__
         else:
-            wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
-        wrapper.__signature__ = self.__signature__
+            try:
+                wrapper = getattr(instance, self.__key)
+            except AttributeError:
+                wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
+                wrapper.__signature__ = self.__signature__
+                setattr(instance, self.__key, wrapper)
         return wrapper
 
 
@@ -168,13 +173,7 @@ class boundevent(object):
         '''
         self.instance = instance
         self.__function = function
-        self.__key = ' ' + function.__name__
-
-    @property
-    def __event_handlers(self):
-        if self.__key not in self.instance.__dict__:
-            self.instance.__dict__[self.__key] = []
-        return self.instance.__dict__[self.__key]
+        self.__event_handlers = []
 
     def __iadd__(self, function):
         '''
