@@ -59,8 +59,8 @@ class event(object):
 
     >>> a = A("Foo")
     >>> b = A("Bar")
-    >>> a.progress += handler
-    >>> b.progress += handler
+    >>> a.progress += functools.partial(handler, a)
+    >>> b.progress += functools.partial(handler, b)
 
     Now everything has been setup.  When we call the method, the event will be
     triggered:
@@ -155,7 +155,8 @@ class event(object):
             try:
                 wrapper = getattr(instance, self.__key)
             except AttributeError:
-                wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
+                func = functools.partial(self.__function, instance)
+                wrapper = functools.wraps(self.__function)(boundevent(func))
                 wrapper.__signature__ = self.__signature__
                 setattr(instance, self.__key, wrapper)
         return wrapper
@@ -164,14 +165,13 @@ class event(object):
 class boundevent(object):
     '''Private helper class for event system.'''
 
-    def __init__(self, instance, function):
+    def __init__(self, function):
         '''
         Constructor.
 
         * instance -- the instance whose member the event is
 
         '''
-        self.instance = instance
         self.__function = function
         self.__event_handlers = []
 
@@ -214,8 +214,8 @@ class boundevent(object):
         # Enforce signature and possibly execute entry code. This makes sure
         # any inconsistent call will be caught immediately, independent of
         # connected handlers.
-        result = self.__function(self.instance, *args, **kwargs)
+        result = self.__function(*args, **kwargs)
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
-            f(self.instance, *args, **kwargs)
+            f(*args, **kwargs)
         return result

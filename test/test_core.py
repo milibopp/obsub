@@ -27,9 +27,11 @@ class OldStyle:
         self.count += 1
 
 class Observer(object):
-    def __init__(self, call_stack):
+    def __init__(self, source, call_stack):
         self.call_stack = call_stack
-    def __call__(self, source, first, second):
+        self.source = weakref.ref(source)
+    def __call__(self, first, second):
+        source = self.source()
         diff = (sum(1 for call in self.call_stack if call[2] == source)
                 - source.count) + 1
         self.call_stack.append((self, diff, source, first, second))
@@ -43,7 +45,7 @@ class TestCore(unittest.TestCase):
         self.maxDiff = None
 
     def observer(self, instance):
-        observer = Observer(self.call_stack)
+        observer = Observer(instance, self.call_stack)
         instance.emit += observer
         return observer
 
