@@ -220,3 +220,69 @@ class boundevent(object):
         for f in self.__event_handlers[:]:
             f(self.instance, *args, **kwargs)
         return result
+
+
+class EventMetaclass(type):
+    '''
+    Allows eventification of methods defined in superclass
+    
+    Methods to which the @event decorator should be applied are specified in
+    a class level variable "_event_methods" which is a list of method names.
+    
+    Suppose a class Foo defines a plain old method .bar. Now suppose we would
+    like to be able to register callbacks to bar. To do this, we have a few
+    options
+    
+    1. Add the @event decorator in Foo. This is a bad option because it
+       requires us to modify someone elses class. This may not be possible or
+       permissible.
+    
+    2. Subclass Foo and re-implement .bar with the @event decorator. This
+       is a reasonable option but could get annoying if we have to
+       re-implement a lot of methods.
+    
+    The other option is to use this metaclass to add the @event decorator for
+    us. The metclass intercepts the definition of methods when our class is
+    being constructed and adds the @event decorator to the ones we specify in
+    a class level attribute _event_methods, which is a list of method names to
+    which we want the @event decorator applied.
+    
+    Example (python 2.x):
+    
+    class Foo(object):
+        def bar(self, x):
+            print("bar called with argument %s" %(x,))
+    
+    class MySubclass(Foo):
+        __metaclass__ = EventMetaclass
+        _event_methods = ['bar']
+    
+    def callback(obj, x):
+        print("callback fired with argument %s" %(x,))
+    
+    f = MySubclass()
+    f.bar += callback
+    f.bar('baz')
+    > Foo.bar called with argument baz
+    > callback fired with argument baz
+    '''
+    def __new__(cls, name, bases, d):
+        def find_method(m):
+            if m in d:
+                return d[m]
+            for base in bases:
+                try:
+                    return getattr(base, m).__func__
+                except AttributeError:
+                    pass
+            raise AttributeError("No bases of %s have method %s"%(name, m))
+        try:
+            for m in d['_event_methods']:
+                d[m] = event(find_method(m))
+        except KeyError:
+            msg = "Use of EventMetaclass requires a class level variable"
+            msg += " '_event_methods' which is a list of names of methods"
+            msg += " to be decorated by @event"
+            raise RuntimeError(msg)
+        return type(name, bases, d)
+
