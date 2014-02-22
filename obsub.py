@@ -234,15 +234,15 @@ class EventMetaclass(type):
     options
     
     1. Add the @event decorator in Foo. This is a bad option because it
-       requires us to modify someone elses class. This may not be possible or
+       requires us to modify someone else's class. This may not be possible or
        permissible.
     
-    2. Subclass Foo and re-implement .bar with the @event decorator. This
+    2. Subclass Foo and reimplement .bar with the @event decorator. This
        is a reasonable option but could get annoying if we have to
        re-implement a lot of methods.
     
     The other option is to use this metaclass to add the @event decorator for
-    us. The metclass intercepts the definition of methods when our class is
+    us. The metaclass intercepts the definition of methods when our class is
     being constructed and adds the @event decorator to the ones we specify in
     a class level attribute _event_methods, which is a list of method names to
     which we want the @event decorator applied.
@@ -280,9 +280,7 @@ class EventMetaclass(type):
             for m in d['_event_methods']:
                 d[m] = event(find_method(m))
         except KeyError:
-            msg = "Use of EventMetaclass requires a class level variable"
-            msg += " '_event_methods' which is a list of names of methods"
-            msg += " to be decorated by @event"
+            msg = "class level attribute _event_methods not found"
             raise RuntimeError(msg)
         return type(name, bases, d)
 
