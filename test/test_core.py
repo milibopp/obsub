@@ -9,6 +9,7 @@ import unittest
 import weakref, gc
 
 # tested module
+import obsub
 from obsub import event
 
 
@@ -18,6 +19,16 @@ class NewStyle(object):
     @event
     def emit(self, first, second):
         self.count += 1
+
+class NewStyleNoDecorator(object):
+    def __init__(self):
+        self.count = 0
+    def emit(self, first, second):
+        self.count += 1
+
+class NewStyleWithMeta(NewStyleNoDecorator):
+    __metaclass__ = obsub.EventMetaclass
+    _event_methods = ['emit']
 
 class OldStyle:
     def __init__(self):
@@ -127,6 +138,9 @@ class TestCore(unittest.TestCase):
         self.call_stack[0] = None
         gc.collect()
         assert wr() is None
+
+class TestCoreMeta(TestCore):
+    cls = NewStyleWithMeta
 
 # ERRORS:
 class TestCoreOldStyle(TestCore):
