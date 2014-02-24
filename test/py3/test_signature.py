@@ -28,9 +28,6 @@ def test_signature():
     # Define a test class and an event handler
     a = A()
 
-    # signature is preserved: (!!)
-    assert signature(a.on_blubb) == signature(on_blubb)
-
     # NOTE: we even got the exact object as default parameter, not only an
     # exact copy:
     assert a.on_blubb(with_kwonlyarg="xyz") is referenced

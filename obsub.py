@@ -10,21 +10,11 @@ The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 
 '''
+__all__ = ['event', 'signal']
+__version__ = '0.2'
 
 import functools
-
-try:
-    # use python3 signatures if available
-    # this takes care of enforcing the correct signature at call time and 
-    # provides the correct default arguments
-    from inspect import signature
-except ImportError: # pragma: no cover
-    # python2 has no support for signatures
-    def signature(fn):
-        return None
-
-__all__ = ['event']
-__version__ = '0.2'
+from black_magic.decorator import partial, wraps
 
 
 class event(object):
@@ -59,8 +49,8 @@ class event(object):
 
     >>> a = A("Foo")
     >>> b = A("Bar")
-    >>> a.progress.connect(functools.partial(handler, a))
-    >>> b.progress.connect(functools.partial(handler, b))
+    >>> a.progress.connect(partial(handler, a))
+    >>> b.progress.connect(partial(handler, b))
 
     Now everything has been setup.  When we call the method, the event will be
     triggered:
@@ -105,7 +95,6 @@ class event(object):
     >>> assert wr() is None
 
     '''
-
     def __init__(self, function):
         '''
         Constructor.
@@ -115,7 +104,6 @@ class event(object):
         '''
         # Copy docstring and other attributes from function
         functools.update_wrapper(self, function)
-        self.__signature__ = signature(function)
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
@@ -135,22 +123,18 @@ class event(object):
         '''
         # this case corresponds to access via the owner class:
         if instance is None:
-            @functools.wraps(self.__function)
+            @wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
-            wrapper.__signature__ = self.__signature__
+            return wrapper
         else:
             try:
                 evt_handlers = getattr(instance, self.__key)
             except AttributeError:
                 evt_handlers = []
                 setattr(instance, self.__key, evt_handlers)
-            func = functools.partial(self.__function, instance)
-            sig = signal(func, evt_handlers)
-            wrapper = functools.wraps(self.__function)(sig)
-            wrapper.__signature__ = self.__signature__
-        return wrapper
-
+            func = partial(self.__function, instance)
+            return signal(func, evt_handlers)
 
 def signal(function, event_handlers=None):
     '''
@@ -163,6 +147,7 @@ def signal(function, event_handlers=None):
     '''
     if event_handlers is None:
         event_handlers = []
+    @wraps(function)
     def wrapper(*args, **kwargs):
         '''
         Overloaded call method; it defines the behaviour of signal().
