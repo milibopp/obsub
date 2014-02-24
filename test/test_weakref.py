@@ -24,7 +24,7 @@ def test_memory_leak():
 
     # Instantiate and attach event handler
     a = A()
-    a.on_blubb += handler
+    a.on_blubb.connect(handler)
 
     # Weak reference for testing
     wr = weakref.ref(a)
@@ -57,7 +57,7 @@ def test_object_stays_alive_during_handler_execution():
         def __init__(self, a):
             # capture the only hard-ref on the A-instance:
             self.a = a
-            self.a.on_blubb += self.handler
+            self.a.on_blubb.connect(self.handler)
 
         def handler(self, a):
             # delete the A-instance
@@ -74,9 +74,10 @@ def test_object_stays_alive_during_handler_execution():
 
     # Instantiate and attach event handler
     b = B(A())
-    b.a.on_blubb += handler
+    b.a.on_blubb.connect(handler)
 
     wr = weakref.ref(b.a)
+
     b.a.on_blubb()
 
     # Trigger the garbage collection manually

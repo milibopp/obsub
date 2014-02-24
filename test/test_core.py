@@ -44,7 +44,7 @@ class TestCore(unittest.TestCase):
 
     def observer(self, instance):
         observer = Observer(self.call_stack)
-        instance.emit += observer
+        instance.emit.connect(observer)
         return observer
 
     def check_stack(self, expected):
@@ -61,7 +61,7 @@ class TestCore(unittest.TestCase):
         """Removal of event handlers works correctly."""
         src = self.cls()
         obs = self.observer(src)
-        src.emit -= obs
+        src.emit.disconnect(obs)
         src.emit("something", "arbitrary")
         self.check_stack([])
 

@@ -60,8 +60,8 @@ class event(object):
 
     >>> a = A("Foo")
     >>> b = A("Bar")
-    >>> a.progress += handler
-    >>> b.progress += handler
+    >>> a.progress.connect(handler)
+    >>> b.progress.connect(handler)
 
     Now everything has been setup.  When we call the method, the event will be
     triggered:
@@ -121,18 +121,6 @@ class event(object):
         # Can also execute code (called before handlers)
         self.__function = function
 
-    def __set__(self, instance, value):
-        '''
-        This is a NOP preventing that a boundevent instance is stored.
-
-        This prevents  operations like  `a.progress += handler`  to have
-        side effects that result in a cyclic reference.
-
-        http://stackoverflow.com/questions/18287336/memory-leak-when-invoking-iadd-via-get-without-using-temporary
-
-        '''
-        pass
-
     def __get__(self, instance, owner):
         '''
         Overloaded __get__ method.  Defines the object resulting from
@@ -176,32 +164,23 @@ class boundevent(object):
             self.instance.__dict__[self.__key] = []
         return self.instance.__dict__[self.__key]
 
-    def __iadd__(self, function):
+    def connect(self, function):
         '''
-        Overloaded += operator.  It registers event handlers to the event.
+        Register an event handler.
 
-        * function -- The right-hand-side argument of the operator; this is the
-            event handling function that registers to the event.
+        * function -- event handling function that registers to the event.
 
         '''
-        # Add the function as a new event handler
         self.__event_handlers.append(function)
-        # Return the boundevent instance itself for coherent syntax behaviour
-        return self
 
-    def __isub__(self, function):
+    def disconnect(self, function):
         '''
-        Overloaded -= operator.  It removes registered event handlers from
-        the event.
+        Remove an event handler.
 
-        * function -- The right-hand-side argument of the operator; this is the
-            function that needs to be removed from the list of event handlers.
+        * function -- function to be removed from the list of event handlers.
 
         '''
-        # Remove the function from the list of registered event handlers
         self.__event_handlers.remove(function)
-        # Return the boundevent instance itself for coherent syntax behaviour
-        return self
 
     def __call__(self, *args, **kwargs):
         '''
