@@ -24,21 +24,19 @@ class event(object):
     The following example demonstrates its functionality in an abstract way.
     A class method can be decorated as follows:
 
-    >>> class A(object):
-    ...     def __init__(self, name):
-    ...         self.name = name
-    ...
+    >>> class Earth(object):
     ...     @event
-    ...     def progress(self, first, second):
-    ...         print("Doing something...")
+    ...     def calculate(self, question, answer=43):
+    ...         """Calling this method will invoke all registered handlers."""
+    ...         print("{0} = {1}".format(question, answer))
 
     A.progress is the event.  It is triggered after executing the code in the
     decorated progress routine.
 
     Now that we have a class with some event, let's create an event handler.
 
-    >>> def handler(self, first, second):
-    ...     print("%s %s and %s!" % (first, self.name, second))
+    >>> def vogons(question, answer):
+    ...     print("destroy earth ({0}, {1})".format(question, answer))
 
     Note that the handler (and signal calls) must have the signature defined
     by the decorated event method.
@@ -47,52 +45,32 @@ class event(object):
     name attribute.  Let's create some instances of A and register our new
     event handler to their progress event.
 
-    >>> a = A("Foo")
-    >>> b = A("Bar")
-    >>> a.progress.connect(partial(handler, a))
-    >>> b.progress.connect(partial(handler, b))
+    >>> earth = Earth()
+    >>> earth.calculate.connect(vogons)
 
     Now everything has been setup.  When we call the method, the event will be
     triggered:
 
-    >>> a.progress("Hello", "World")
-    Doing something...
-    Hello Foo and World!
-    >>> b.progress(second="Others", first="Hi")
-    Doing something...
-    Hi Bar and Others!
+    >>> earth.calculate("42+1", "42")
+    42+1 = 42
+    destroy earth (42+1, 42)
 
     What happens if we disobey the call signature?
 
-    >>> c = A("World")
-    >>> c.progress(second="World")  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> earth2 = Earth()
+    >>> earth2.calculate(answer=42)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-    TypeError: progress() missing 1 required positional argument: 'first'
+    TypeError: progress() missing 1 required positional argument: 'question'
 
     Class based access is possible as well:
 
-    >>> A.progress(a, "Hello", "Y")
-    Doing something...
-    Hello Foo and Y!
+    >>> earth2.calculate.connect(vogons)
+    >>> Earth.calculate(earth2, "answer to everything")
+    answer to everything = 43
+    destroy earth (answer to everything, 43)
 
-    Bound methods keep the instance alive:
-
-    >>> f = a.progress
-    >>> import weakref, gc
-    >>> wr = weakref.ref(a)
-    >>> del a
-    >>> c=gc.collect()
-    >>> assert wr() is not None
-    >>> f("Hi", "Z")
-    Doing something...
-    Hi Foo and Z!
-
-    If we delete the hard reference to the bound method and run the garbage
-    collector (to make sure it is run at all), the object will be gone:
-
-    >>> del f
-    >>> c=gc.collect()
-    >>> assert wr() is None
+    And check out the help ``help(Earth)`` or ``help(earth.calculate)``, you
+    won't notice a thing!
 
     '''
     def __init__(self, function):
