@@ -30,6 +30,16 @@ Installation
 ``pip install obsub`` or you do it manually using ``setup.py`` as with
 any python package.
 
+If you decide to use ``obsub.py`` as a drop-in (=uninstalled) in a python2
+application, you should also include the black-magic.decorator_ and
+funcsigs_ packages. Otherwise, your events will not be capable of making
+full use of default parameters, i.e. you need to make sure in your
+application code that all parameters that have default values in your event
+function have reasonable default values in your handlers as well.
+
+.. _black-magic.decorator: https://pypi.python.org/pypi/black-magic
+.. _funcsigs: https://pypi.python.org/pypi/funcsigs
+
 
 Usage
 -----

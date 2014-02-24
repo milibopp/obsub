@@ -10,10 +10,29 @@ The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 
 '''
-__all__ = ['event', 'signal']
+__all__ = ['event', 'signal', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
-from black_magic.decorator import wraps
+try:
+    from black_magic.decorator import wraps
+    SUPPORTS_DEFAULT_ARGUMENTS = True
+except ImportError:
+    import functools
+    try:
+        from inspect import signature
+    except ImportError:     # python2
+        SUPPORTS_DEFAULT_ARGUMENTS = False
+        def wraps(wrapped):
+            def update_wrapper(wrapper):
+                return functools.wraps(wrapped)(wrapper)
+            return update_wrapper
+    else:                   # python3
+        SUPPORTS_DEFAULT_ARGUMENTS = True
+        def wraps(wrapped):
+            def update_wrapper(wrapper):
+                wrapper.__signature__ = signature(wapped)
+                return functools.wraps(wrapped)(wrapper)
+            return update_wrapper
 
 
 class event(object):
@@ -35,7 +54,7 @@ class event(object):
     Now that we have a class with some event, let's create an event handler.
 
     >>> def vogons(question, answer):
-    ...     print("destroy earth ({0}, {1})".format(question, answer))
+    ...     print("destroy earth ({0})".format(question))
 
     Note that the handler (and signal calls) must have the signature defined
     by the decorated event method.
@@ -52,7 +71,7 @@ class event(object):
 
     >>> earth.calculate("42+1", "42")
     42+1 = 42
-    destroy earth (42+1, 42)
+    destroy earth (42+1)
 
     What happens if we disobey the call signature?
 
@@ -64,12 +83,22 @@ class event(object):
     Class based access is possible as well:
 
     >>> earth2.calculate.connect(vogons)
-    >>> Earth.calculate(earth2, "answer to everything")
-    answer to everything = 43
-    destroy earth (answer to everything, 43)
+    >>> Earth.calculate(earth2, "answer to everything", 42)
+    answer to everything = 42
+    destroy earth (answer to everything)
+
+    On python3 (and on python2 if you have black-magic installed) default
+    arguments work as expected:
+
+    >>> if SUPPORTS_DEFAULT_ARGUMENTS:
+    ...     earth2.calculate('the real answer')
+    ... else:   # default arguments not supported, so let's cheat...
+    ...     earth2.calculate('the real answer', 43)
+    the real answer = 43
+    destroy earth (the real answer)
 
     And check out the help ``help(Earth)`` or ``help(earth.calculate)``, you
-    won't notice a thing!
+    won't notice a thing (at least if you have black-magic installed).
 
     '''
     def __init__(self, function):
@@ -141,7 +170,10 @@ def signal(function, event_handlers=None, _decorate=True):
     ...     print("foo=%s" % foo)
     >>> sig.connect(handler)
 
-    >>> sig()
+    >>> if SUPPORTS_DEFAULT_ARGUMENTS:
+    ...     sig()
+    ... else:
+    ...     sig('bar')
     In sig!
     foo=bar
     'Return value.'
