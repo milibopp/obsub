@@ -165,7 +165,7 @@ class event(object):
 class boundevent(object):
     '''Private helper class for event system.'''
 
-    def __init__(self, function):
+    def __init__(self, function, evt_handlers=None):
         '''
         Constructor.
 
@@ -173,7 +173,7 @@ class boundevent(object):
 
         '''
         self.__function = function
-        self.__event_handlers = []
+        self.__event_handlers = [] if evt_handlers is None else evt_handlers
 
     def __iadd__(self, function):
         '''
