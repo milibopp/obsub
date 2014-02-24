@@ -12,7 +12,6 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 '''
 
 import functools
-import inspect
 
 try:
     # use python3 signatures if available
@@ -60,8 +59,8 @@ class event(object):
 
     >>> a = A("Foo")
     >>> b = A("Bar")
-    >>> a.progress.connect(handler)
-    >>> b.progress.connect(handler)
+    >>> a.progress.connect(functools.partial(handler, a))
+    >>> b.progress.connect(functools.partial(handler, b))
 
     Now everything has been setup.  When we call the method, the event will be
     triggered:
@@ -120,6 +119,7 @@ class event(object):
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
+        self.__key = ' ' + function.__name__
 
     def __get__(self, instance, owner):
         '''
@@ -138,31 +138,32 @@ class event(object):
             @functools.wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
                 return self.__get__(instance, owner)(*args, **kwargs)
+            wrapper.__signature__ = self.__signature__
         else:
-            wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
-        wrapper.__signature__ = self.__signature__
+            try:
+                evt_handlers = getattr(instance, self.__key)
+            except AttributeError:
+                evt_handlers = []
+                setattr(instance, self.__key, evt_handlers)
+            func = functools.partial(self.__function, instance)
+            evt = boundevent(func, evt_handlers)
+            wrapper = functools.wraps(self.__function)(evt)
+            wrapper.__signature__ = self.__signature__
         return wrapper
 
 
 class boundevent(object):
     '''Private helper class for event system.'''
 
-    def __init__(self, instance, function):
+    def __init__(self, function, evt_handlers=None):
         '''
         Constructor.
 
         * instance -- the instance whose member the event is
 
         '''
-        self.instance = instance
         self.__function = function
-        self.__key = ' ' + function.__name__
-
-    @property
-    def __event_handlers(self):
-        if self.__key not in self.instance.__dict__:
-            self.instance.__dict__[self.__key] = []
-        return self.instance.__dict__[self.__key]
+        self.__event_handlers = [] if evt_handlers is None else evt_handlers
 
     def connect(self, function):
         '''
@@ -194,8 +195,8 @@ class boundevent(object):
         # Enforce signature and possibly execute entry code. This makes sure
         # any inconsistent call will be caught immediately, independent of
         # connected handlers.
-        result = self.__function(self.instance, *args, **kwargs)
+        result = self.__function(*args, **kwargs)
         # Call all registered event handlers
         for f in self.__event_handlers[:]:
-            f(self.instance, *args, **kwargs)
+            f(*args, **kwargs)
         return result

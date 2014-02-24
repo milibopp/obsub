@@ -7,6 +7,7 @@ might prevent garbage collection.
 
 import weakref
 import gc
+import functools
 
 from obsub import event
 
@@ -19,7 +20,7 @@ def test_memory_leak():
         def on_blubb(self):
             pass
 
-    def handler(self):
+    def handler():
         pass
 
     # Instantiate and attach event handler
@@ -59,24 +60,24 @@ def test_object_stays_alive_during_handler_execution():
             self.a = a
             self.a.on_blubb.connect(self.handler)
 
-        def handler(self, a):
+        def handler(self):
             # delete the A-instance
+            self.a.deleted = True
             del self.a
-            a.deleted = True
-            del a
             gc.collect()
 
-    def handler(a):
+    def handler(wr):
         # We want a valid reference to the handled object, ...
+        a = wr()
         assert a is not None
         # ..., even if the deletion handler has already been called:
         assert a.deleted
 
     # Instantiate and attach event handler
     b = B(A())
-    b.a.on_blubb.connect(handler)
 
     wr = weakref.ref(b.a)
+    b.a.on_blubb.connect(functools.partial(handler, wr))
 
     b.a.on_blubb()
 
