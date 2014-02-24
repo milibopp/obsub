@@ -146,15 +146,21 @@ class event(object):
                 evt_handlers = []
                 setattr(instance, self.__key, evt_handlers)
             func = functools.partial(self.__function, instance)
-            evt = boundevent(func, evt_handlers)
-            wrapper = functools.wraps(self.__function)(evt)
+            sig = signal(func, evt_handlers)
+            wrapper = functools.wraps(self.__function)(sig)
             wrapper.__signature__ = self.__signature__
         return wrapper
 
 
-class boundevent(object):
-    '''Private helper class for event system.'''
+class signal(object):
+    '''
+    Signals are objects are primitive event emitter objects.
 
+    Calling a signal emits the event, i.e. all registered event handlers are
+    called with the given arguments. Before the event handlers are called,
+    the base function gets a chance to execute.
+
+    '''
     def __init__(self, function, evt_handlers=None):
         '''
         Constructor.
@@ -185,7 +191,7 @@ class boundevent(object):
 
     def __call__(self, *args, **kwargs):
         '''
-        Overloaded call method; it defines the behaviour of boundevent().
+        Overloaded call method; it defines the behaviour of signal().
         When the event is called, all registered event handlers are called.
 
         * *args -- Arguments given to the event handlers.
