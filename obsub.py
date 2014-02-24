@@ -14,7 +14,7 @@ __all__ = ['event', 'signal']
 __version__ = '0.2'
 
 import functools
-from black_magic.decorator import partial, wraps
+from black_magic.decorator import wraps
 
 
 class event(object):
@@ -103,13 +103,13 @@ class event(object):
         if instance is None:
             @wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
-                return _emit(partial(self.__function, instance),
+                return _emit(self.__function.__get__(instance),
                              self.__handlers(instance),
                              *args, **kwargs)
             return wrapper
         # attribute access via instance:
         else:
-            return signal(partial(self.__function, instance),
+            return signal(self.__function.__get__(instance),
                           self.__handlers(instance))
 
     def __handlers(self, instance):
