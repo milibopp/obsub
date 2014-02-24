@@ -13,7 +13,6 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 __all__ = ['event', 'signal']
 __version__ = '0.2'
 
-import functools
 from black_magic.decorator import wraps
 
 
@@ -80,8 +79,6 @@ class event(object):
         * function -- The function to be wrapped by the decorator.
 
         '''
-        # Copy docstring and other attributes from function
-        functools.update_wrapper(self, function)
         # Used to enforce call signature even when no slot is connected.
         # Can also execute code (called before handlers)
         self.__function = function
