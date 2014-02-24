@@ -52,7 +52,7 @@ The ``event`` decorator from the ``obsub`` module is used as follows:
 
     # Wire everything up...
     sub = Subject()
-    sub.on_stuff += handler
+    sub.on_stuff.connect(handler)
 
     # And try it!
     sub.on_stuff('foo')
