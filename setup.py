@@ -35,5 +35,5 @@ setup(
     license='Public Domain',
     tests_require='nose',
     test_suite='nose.collector',
-    install_requires=['black-magic>=0.0.5'],
+    install_requires=['black-magic>=0.0.6'],
 )

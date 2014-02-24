@@ -125,23 +125,30 @@ class event(object):
         if instance is None:
             @wraps(self.__function)
             def wrapper(instance, *args, **kwargs):
-                return self.__get__(instance, owner)(*args, **kwargs)
+                return _emit(partial(self.__function, instance),
+                             self.__handlers(instance),
+                             *args, **kwargs)
             return wrapper
+        # attribute access via instance:
         else:
-            try:
-                evt_handlers = getattr(instance, self.__key)
-            except AttributeError:
-                evt_handlers = []
-                setattr(instance, self.__key, evt_handlers)
-            func = partial(self.__function, instance)
-            return signal(func, evt_handlers)
+            return signal(partial(self.__function, instance),
+                          self.__handlers(instance))
 
-def signal(function, event_handlers=None):
+    def __handlers(self, instance):
+        try:
+            return getattr(instance, self.__key)
+        except AttributeError:
+            handlers = []
+            setattr(instance, self.__key, handlers)
+            return handlers
+
+def signal(function, event_handlers=None, _decorate=True):
     '''
     Signals are objects are primitive event emitter objects.
 
     * function -- templace function (will be executed before event handlers)
     * event_handlers -- event handler list object to use
+    * _decorate -- whether to return a nicely decorated function object
 
     Calling a signal emits the event, i.e. all registered event handlers are
     called with the given arguments. Before the event handlers are called,
@@ -172,12 +179,17 @@ def signal(function, event_handlers=None):
     '''
     if event_handlers is None:
         event_handlers = []
-    @wraps(function)
     def wrapper(*args, **kwargs):
-        result = function(*args, **kwargs)
-        for f in event_handlers[:]:
-            f(*args, **kwargs)
-        return result
+        return _emit(function, event_handlers, *args, **kwargs)
+    if _decorate:
+        wrapper = wraps(function)(wrapper)
     wrapper.connect = event_handlers.append
     wrapper.disconnect = event_handlers.remove
     return wrapper
+
+def _emit(function, event_handlers, *args, **kwargs):
+    """Private function. Emit the specified event."""
+    result = function(*args, **kwargs)
+    for f in event_handlers[:]:
+        f(*args, **kwargs)
+    return result
