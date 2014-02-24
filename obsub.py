@@ -174,19 +174,7 @@ def signal(function, event_handlers=None):
         event_handlers = []
     @wraps(function)
     def wrapper(*args, **kwargs):
-        '''
-        Overloaded call method; it defines the behaviour of signal().
-        When the event is called, all registered event handlers are called.
-
-        * *args -- Arguments given to the event handlers.
-        * **kwargs -- Keyword arguments given to the event handlers.
-
-        '''
-        # Enforce signature and possibly execute entry code. This makes sure
-        # any inconsistent call will be caught immediately, independent of
-        # connected handlers.
         result = function(*args, **kwargs)
-        # Call all registered event handlers
         for f in event_handlers[:]:
             f(*args, **kwargs)
         return result
