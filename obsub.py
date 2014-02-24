@@ -152,7 +152,7 @@ class event(object):
         return wrapper
 
 
-class signal(object):
+def signal(function, event_handlers=None):
     '''
     Signals are objects are primitive event emitter objects.
 
@@ -161,35 +161,9 @@ class signal(object):
     the base function gets a chance to execute.
 
     '''
-    def __init__(self, function, evt_handlers=None):
-        '''
-        Constructor.
-
-        * instance -- the instance whose member the event is
-
-        '''
-        self.__function = function
-        self.__event_handlers = [] if evt_handlers is None else evt_handlers
-
-    def connect(self, function):
-        '''
-        Register an event handler.
-
-        * function -- event handling function that registers to the event.
-
-        '''
-        self.__event_handlers.append(function)
-
-    def disconnect(self, function):
-        '''
-        Remove an event handler.
-
-        * function -- function to be removed from the list of event handlers.
-
-        '''
-        self.__event_handlers.remove(function)
-
-    def __call__(self, *args, **kwargs):
+    if event_handlers is None:
+        event_handlers = []
+    def wrapper(*args, **kwargs):
         '''
         Overloaded call method; it defines the behaviour of signal().
         When the event is called, all registered event handlers are called.
@@ -201,8 +175,11 @@ class signal(object):
         # Enforce signature and possibly execute entry code. This makes sure
         # any inconsistent call will be caught immediately, independent of
         # connected handlers.
-        result = self.__function(*args, **kwargs)
+        result = function(*args, **kwargs)
         # Call all registered event handlers
-        for f in self.__event_handlers[:]:
+        for f in event_handlers[:]:
             f(*args, **kwargs)
         return result
+    wrapper.connect = event_handlers.append
+    wrapper.disconnect = event_handlers.remove
+    return wrapper
