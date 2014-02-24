@@ -140,9 +140,34 @@ def signal(function, event_handlers=None):
     '''
     Signals are objects are primitive event emitter objects.
 
+    * function -- templace function (will be executed before event handlers)
+    * event_handlers -- event handler list object to use
+
     Calling a signal emits the event, i.e. all registered event handlers are
     called with the given arguments. Before the event handlers are called,
     the base function gets a chance to execute.
+
+    You can use `signal` as a decorator, for example:
+
+    >>> @signal
+    ... def sig(foo="bar"):
+    ...     """I'm a docstring!"""
+    ...     print('In sig!')
+    ...     return 'Return value.'
+
+    >>> def handler(foo):
+    ...     print("foo=%s" % foo)
+    >>> sig.connect(handler)
+
+    >>> sig()
+    In sig!
+    foo=bar
+    'Return value.'
+
+    >>> sig("hello")
+    In sig!
+    foo=hello
+    'Return value.'
 
     '''
     if event_handlers is None:
