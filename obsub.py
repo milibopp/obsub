@@ -153,12 +153,14 @@ class event(object):
             wrapper.__signature__ = self.__signature__
         else:
             try:
-                wrapper = getattr(instance, self.__key)
+                evt_handlers = getattr(instance, self.__key)
             except AttributeError:
-                func = functools.partial(self.__function, instance)
-                wrapper = functools.wraps(self.__function)(boundevent(func))
-                wrapper.__signature__ = self.__signature__
-                setattr(instance, self.__key, wrapper)
+                evt_handlers = []
+                setattr(instance, self.__key, evt_handlers)
+            func = functools.partial(self.__function, instance)
+            evt = boundevent(func, evt_handlers)
+            wrapper = functools.wraps(self.__function)(evt)
+            wrapper.__signature__ = self.__signature__
         return wrapper
 
 
