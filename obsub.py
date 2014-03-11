@@ -83,7 +83,7 @@ class event(object):
 
     Class based access is possible as well:
 
-    >>> earth2.calculate.connect(vogons)
+    >>> Earth.calculate.connect(earth2, vogons)
     >>> Earth.calculate(earth2, "answer to everything", 42)
     answer to everything = 42
     destroy earth (answer to everything)
@@ -123,8 +123,13 @@ class event(object):
             for f in handlers(instance)[:]:
                 f(*args, **kwargs)
             return result
+        def connect(instance, handler):
+            handlers(instance).append(handler)
+        def disconnect(instance, handler):
+            handlers(instance).remove(handler)
+        emit.connect = connect
+        emit.disconnect = disconnect
         self.__function = emit
-        self.__handlers = handlers
 
     def __get__(self, instance, owner):
         '''
@@ -148,9 +153,8 @@ class event(object):
             # later on doesn't support setting attributes.
             orig = self.__function
             copy = copy_function(orig)
-            handlers = self.__handlers(instance)
-            copy.connect = handlers.append
-            copy.disconnect = handlers.remove
+            copy.connect = orig.connect.__get__(instance)
+            copy.disconnect = orig.disconnect.__get__(instance)
             return copy.__get__(instance)
 
 def signal(function, event_handlers=None, _decorate=True):
