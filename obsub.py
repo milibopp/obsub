@@ -13,6 +13,7 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 __all__ = ['event', 'signal', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
+import sys
 import types
 try:
     from black_magic.decorator import wraps
@@ -202,7 +203,13 @@ def signal(function, event_handlers=None, _decorate=True):
     wrapper.disconnect = event_handlers.remove
     return wrapper
 
-def copy_function(func):
-    return types.FunctionType(func.__code__, func.__globals__,
-                              func.__name__, func.__defaults__,
-                              func.__closure__)
+if sys.version_info >= (3,0):
+    def copy_function(func):
+        return types.FunctionType(func.__code__, func.__globals__,
+                                  func.__name__, func.__defaults__,
+                                  func.__closure__)
+else:
+    def copy_function(func):
+        return types.FunctionType(func.func_code, func.func_globals,
+                                  func.func_name, func.func_defaults,
+                                  func.func_closure)
