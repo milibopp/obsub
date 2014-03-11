@@ -13,6 +13,7 @@ http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 __all__ = ['event', 'signal', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
+import types
 try:
     from black_magic.decorator import wraps
     SUPPORTS_DEFAULT_ARGUMENTS = True
@@ -33,7 +34,6 @@ except ImportError:
                 wrapper.__signature__ = signature(wapped)
                 return functools.wraps(wrapped)(wrapper)
             return update_wrapper
-
 
 class event(object):
     '''
@@ -108,10 +108,22 @@ class event(object):
         * function -- The function to be wrapped by the decorator.
 
         '''
-        # Used to enforce call signature even when no slot is connected.
-        # Can also execute code (called before handlers)
-        self.__function = function
-        self.__key = ' ' + function.__name__
+        key = ' ' + function.__name__
+        def handlers(instance):
+            try:
+                return getattr(instance, key)
+            except AttributeError:
+                handlers = []
+                setattr(instance, key, handlers)
+                return handlers
+        @wraps(function)
+        def emit(instance, *args, **kwargs):
+            result = function(instance, *args, **kwargs)
+            for f in handlers(instance)[:]:
+                f(*args, **kwargs)
+            return result
+        self.__function = emit
+        self.__handlers = handlers
 
     def __get__(self, instance, owner):
         '''
@@ -127,24 +139,18 @@ class event(object):
         '''
         # this case corresponds to access via the owner class:
         if instance is None:
-            @wraps(self.__function)
-            def wrapper(instance, *args, **kwargs):
-                return _emit(self.__function.__get__(instance),
-                             self.__handlers(instance),
-                             *args, **kwargs)
-            return wrapper
+            return self.__function
         # attribute access via instance:
         else:
-            return signal(self.__function.__get__(instance),
-                          self.__handlers(instance))
-
-    def __handlers(self, instance):
-        try:
-            return getattr(instance, self.__key)
-        except AttributeError:
-            handlers = []
-            setattr(instance, self.__key, handlers)
-            return handlers
+            # Copy the unbound function before setting the connector
+            # methods. This is necessary since the instance method acquired
+            # later on doesn't support setting attributes.
+            orig = self.__function
+            copy = copy_function(orig)
+            handlers = self.__handlers(instance)
+            copy.connect = handlers.append
+            copy.disconnect = handlers.remove
+            return copy.__get__(instance)
 
 def signal(function, event_handlers=None, _decorate=True):
     '''
@@ -186,17 +192,17 @@ def signal(function, event_handlers=None, _decorate=True):
     '''
     if event_handlers is None:
         event_handlers = []
+    @wraps(function)
     def wrapper(*args, **kwargs):
-        return _emit(function, event_handlers, *args, **kwargs)
-    if _decorate:
-        wrapper = wraps(function)(wrapper)
+        result = function(*args, **kwargs)
+        for f in event_handlers[:]:
+            f(*args, **kwargs)
+        return result
     wrapper.connect = event_handlers.append
     wrapper.disconnect = event_handlers.remove
     return wrapper
 
-def _emit(function, event_handlers, *args, **kwargs):
-    """Private function. Emit the specified event."""
-    result = function(*args, **kwargs)
-    for f in event_handlers[:]:
-        f(*args, **kwargs)
-    return result
+def copy_function(func):
+    return types.FunctionType(func.__code__, func.__globals__,
+                              func.__name__, func.__defaults__,
+                              func.__closure__)
