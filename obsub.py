@@ -24,10 +24,7 @@ except ImportError:
         from inspect import signature
     except ImportError:     # python2
         SUPPORTS_DEFAULT_ARGUMENTS = False
-        def wraps(wrapped):
-            def update_wrapper(wrapper):
-                return functools.wraps(wrapped)(wrapper)
-            return update_wrapper
+        wraps = functools.wraps
     else:                   # python3
         SUPPORTS_DEFAULT_ARGUMENTS = True
         def wraps(wrapped):
