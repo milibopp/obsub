@@ -17,7 +17,7 @@ __version__ = '0.2'
 import types
 
 try:
-    from black_magic.decorator import wraps
+    from black_magic.decorator import wraps as _wraps
     SUPPORTS_DEFAULT_ARGUMENTS = True
 except ImportError:
     import functools
@@ -25,10 +25,10 @@ except ImportError:
         from inspect import signature
     except ImportError:     # python2
         SUPPORTS_DEFAULT_ARGUMENTS = False
-        wraps = functools.wraps
+        _wraps = functools.wraps
     else:                   # python3
         SUPPORTS_DEFAULT_ARGUMENTS = True
-        def wraps(wrapped):
+        def _wraps(wrapped):
             """Like functools.wraps, but also preserve the signature."""
             def update_wrapper(wrapper):
                 wrapper.__signature__ = signature(wrapped)
@@ -47,7 +47,7 @@ def _invoke_all(handlers, args, kwargs):
         f(*args, **kwargs)
 
 
-def _emitter_method(function):
+def _emitter_method(function, wraps):
 
     """Internal utility that creates an event method with connectors."""
 
@@ -273,13 +273,14 @@ class event(object):
     won't notice a thing (at least if you have black-magic installed).
     """
 
-    def __init__(self, function):
+    def __init__(self, function, wraps=_wraps):
         """
         Create an instance event based on the member function parameter.
 
         * function -- The function to be wrapped by the decorator.
         """
-        self.__emit = _event_method_proxy(_emitter_method(function), None)
+        wrapper = _emitter_method(function, wraps)
+        self.__emit = _event_method_proxy(wrapper, None)
 
     def __get__(self, instance, owner):
         """
@@ -291,12 +292,13 @@ class event(object):
         return self.__emit.__get__(instance, owner)
 
 
-def static_event(function, event_handlers=None):
+def static_event(function, event_handlers=None, wraps=_wraps):
     """
     Decorator for static event functions.
 
     * function -- templace function (will be executed before event handlers)
     * event_handlers -- event handler list object to use
+    * wraps -- used to update the wrapper function (like functools.wraps)
 
     Calling a static_event emits the event, i.e. all registered event
     handlers are called with the given arguments. Before the event handlers
