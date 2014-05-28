@@ -1,4 +1,4 @@
-'''
+"""
 This is an implementation of the observer pattern.  It uses function
 decorators to achieve the desired event registration mechanism.
 
@@ -8,13 +8,15 @@ http://en.wikipedia.org/wiki/Observer_pattern
 
 The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
+"""
 
-'''
 __all__ = ['event', 'signal', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
+
 import sys
 import types
+
 try:
     from black_magic.decorator import wraps
     SUPPORTS_DEFAULT_ARGUMENTS = True
@@ -28,22 +30,25 @@ except ImportError:
     else:                   # python3
         SUPPORTS_DEFAULT_ARGUMENTS = True
         def wraps(wrapped):
+            """Like functools.wraps, but also preserve the signature."""
             def update_wrapper(wrapper):
                 wrapper.__signature__ = signature(wapped)
                 return functools.wraps(wrapped)(wrapper)
             return update_wrapper
 
-class event(object):
-    '''
-    This class serves as a utility to decorate a function as an event.
 
-    The following example demonstrates its functionality in an abstract way.
+class event(object):
+
+    """
+    Decorator for instance events (analogous to member functions).
+
+    The following example demonstrates its functionality.
     A class method can be decorated as follows:
 
     >>> class Earth(object):
     ...     @event
     ...     def calculate(self, question, answer=43):
-    ...         """Calling this method will invoke all registered handlers."""
+    ...         '''Calling this method will invoke all registered handlers.'''
     ...         print("{0} = {1}".format(question, answer))
 
     A.progress is the event.  It is triggered after executing the code in the
@@ -97,15 +102,14 @@ class event(object):
 
     And check out the help ``help(Earth)`` or ``help(earth.calculate)``, you
     won't notice a thing (at least if you have black-magic installed).
+    """
 
-    '''
     def __init__(self, function):
-        '''
-        Constructor.
+        """
+        Create an instance event based on the member function parameter.
 
         * function -- The function to be wrapped by the decorator.
-
-        '''
+        """
         key = ' ' + function.__name__
         def handlers(instance):
             try:
@@ -129,17 +133,15 @@ class event(object):
         self.__function = emit
 
     def __get__(self, instance, owner):
-        '''
-        Overloaded __get__ method.  Defines the object resulting from
-        a method/function decorated with @event.
+        """
+        Get the instance event for the specified instance or class.
 
         See http://docs.python.org/reference/datamodel.html?highlight=__get__#object.__get__
         for a detailed explanation of what this special method usually does.
 
         * instance -- The instance of event invoked.
         * owner -- The owner class.
-
-        '''
+        """
         # this case corresponds to access via the owner class:
         if instance is None:
             return self.__function
@@ -154,9 +156,10 @@ class event(object):
             copy.disconnect = orig.disconnect.__get__(instance)
             return copy.__get__(instance)
 
+
 def signal(function, event_handlers=None, _decorate=True):
-    '''
-    Signals are objects are primitive event emitter objects.
+    """
+    Decorator for static event functions.
 
     * function -- templace function (will be executed before event handlers)
     * event_handlers -- event handler list object to use
@@ -170,7 +173,7 @@ def signal(function, event_handlers=None, _decorate=True):
 
     >>> @signal
     ... def sig(foo="bar"):
-    ...     """I'm a docstring!"""
+    ...     '''I'm a docstring!'''
     ...     print('In sig!')
     ...     return 'Return value.'
 
@@ -190,8 +193,7 @@ def signal(function, event_handlers=None, _decorate=True):
     In sig!
     foo=hello
     'Return value.'
-
-    '''
+    """
     if event_handlers is None:
         event_handlers = []
     @wraps(function)
@@ -204,13 +206,16 @@ def signal(function, event_handlers=None, _decorate=True):
     wrapper.disconnect = event_handlers.remove
     return wrapper
 
+
 if sys.version_info >= (3,0):
     def copy_function(func):
+        """Create a copy of a function instance."""
         return types.FunctionType(func.__code__, func.__globals__,
                                   func.__name__, func.__defaults__,
                                   func.__closure__)
 else:
     def copy_function(func):
+        """Create a copy of a function instance."""
         return types.FunctionType(func.func_code, func.func_globals,
                                   func.func_name, func.func_defaults,
                                   func.func_closure)
