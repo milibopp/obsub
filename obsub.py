@@ -157,13 +157,12 @@ class event(object):
             return copy.__get__(instance)
 
 
-def signal(function, event_handlers=None, _decorate=True):
+def signal(function, event_handlers=None):
     """
     Decorator for static event functions.
 
     * function -- templace function (will be executed before event handlers)
     * event_handlers -- event handler list object to use
-    * _decorate -- whether to return a nicely decorated function object
 
     Calling a signal emits the event, i.e. all registered event handlers are
     called with the given arguments. Before the event handlers are called,
