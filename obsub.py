@@ -37,6 +37,91 @@ except ImportError:
             return update_wrapper
 
 
+def _emitter_method(function):
+
+    """Internal utility that creates an event method with connectors."""
+
+    key = ' ' + function.__name__
+    def get_handlers(instance):
+        return instance.__dict__.get(key, ())
+
+    # Wrap the event emitter function to retain docstring and signature:
+    @wraps(function)
+    def emit(*self__args, **kwargs):
+        self = self__args[0]
+        args = self__args[1:]
+        result = function(self, *args, **kwargs)
+        # Invoke instance-specfic handlers:
+        for f in get_handlers(self)[:]:
+            f(*args, **kwargs)
+        # Invoke (base) class-specfic handlers:
+        try:
+            mro = self.__class__.__mro__
+        except AttributeError:              # Old style class..
+            pass
+        else:
+            for cls in mro:
+                for f in get_handlers(cls)[:]:
+                    f(self, *args, **kwargs)
+        return result
+
+    # create basic tools for managing connection/disconnection of handlers
+    def make_handlers(instance):
+        try:
+            # Use item access to ensure we are querying an attribute that
+            # is specific to this instance/class:
+            return instance.__dict__[key]
+        except KeyError:
+            handlers = []
+            # In case 'instance' is the owner class, instance.__dict__ can
+            # be a read-only proxy. Therefore, we need to use setattr()
+            # rather than item access:
+            setattr(instance, key, handlers)
+            return handlers
+
+    def connect(instance, handler):
+        """Connect an event handler."""
+        make_handlers(instance).append(handler)
+
+    def disconnect(instance, handler):
+        """Disconnect an event handler."""
+        make_handlers(instance).remove(handler)
+
+    emit.connect = connect
+    emit.disconnect = disconnect
+    return emit
+
+
+def _class_connector(owner, method):
+
+    """Internal utility to create class based connect/disconnect functions."""
+
+    def connector(*instance__handler):
+        """
+        Connect/disconnect an event handler.
+
+        :param instance: optional
+        :param handler: required
+
+        If the instance parameter is specified, the connection will be
+        managed with regard to the list of instance specific event handlers.
+
+        Otherwise, the handler will be the list of class-specific event
+        handlers is managed. Class specific connections enable to receive
+        notifications from all instances of any subclass. In these events
+        the instance is given as the first argument to the handler.
+        """
+        try:
+            method(*instance__handler)
+        except TypeError:
+            assert hasattr(owner, '__mro__'), \
+                "Class based connection requires new style classes!"
+            method(owner, *instance__handler)
+
+    connector.__name__ = method.__name__
+    return connector
+
+
 class event(object):
 
     """
@@ -105,64 +190,35 @@ class event(object):
     """
 
     def __init__(self, function):
-
         """
         Create an instance event based on the member function parameter.
 
         * function -- The function to be wrapped by the decorator.
         """
-
-        key = ' ' + function.__name__
-        def handlers(instance):
-            try:
-                return getattr(instance, key)
-            except AttributeError:
-                handlers = []
-                setattr(instance, key, handlers)
-                return handlers
-
-        @wraps(function)
-        def emit(*instance__and__args, **kwargs):
-            instance = instance__and__args[0]
-            args = instance__and__args[1:]
-            result = function(instance, *args, **kwargs)
-            for f in handlers(instance)[:]:
-                f(*args, **kwargs)
-            return result
-
-        def connect(instance, handler):
-            handlers(instance).append(handler)
-
-        def disconnect(instance, handler):
-            handlers(instance).remove(handler)
-
-        emit.connect = connect
-        emit.disconnect = disconnect
-        self.__function = emit
+        self.__emit = _emitter_method(function)
 
     def __get__(self, instance, owner):
         """
-        Get the instance event for the specified instance or class.
-
-        See http://docs.python.org/reference/datamodel.html?highlight=__get__#object.__get__
-        for a detailed explanation of what this special method usually does.
+        Query event for specific to one instance or class.
 
         * instance -- The instance of event invoked.
         * owner -- The owner class.
         """
-        # this case corresponds to access via the owner class:
+        orig = self.__emit
+        # Copy the unbound function before setting the connector methods.
+        # This is necessary since the instance method acquired later on
+        # doesn't support setting attributes.
+        emit = copy_function(orig)
         if instance is None:
-            return self.__function
-        # attribute access via instance:
+            # access via class:
+            emit.connect = _class_connector(owner, orig.connect)
+            emit.disconnect = _class_connector(owner, orig.disconnect)
+            return emit
         else:
-            # Copy the unbound function before setting the connector
-            # methods. This is necessary since the instance method acquired
-            # later on doesn't support setting attributes.
-            orig = self.__function
-            copy = copy_function(orig)
-            copy.connect = orig.connect.__get__(instance)
-            copy.disconnect = orig.disconnect.__get__(instance)
-            return copy.__get__(instance)
+            # access via instance:
+            emit.connect = orig.connect.__get__(instance)
+            emit.disconnect = orig.disconnect.__get__(instance)
+            return emit.__get__(instance)
 
 
 def static_event(function, event_handlers=None):
