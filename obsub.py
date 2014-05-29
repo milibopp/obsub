@@ -127,63 +127,97 @@ class event(object):
     """
     Decorator for instance events (analogous to member functions).
 
-    The following example demonstrates its functionality.
-    A class method can be decorated as follows:
+    The basic usage should be easy to grasp:
+
+
+    Define an instance specific event inside a class
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> from obsub import event
 
     >>> class Earth(object):
     ...     @event
-    ...     def calculate(self, question, answer=43):
-    ...         '''Calling this method will invoke all registered handlers.'''
-    ...         print("{0} = {1}".format(question, answer))
-
-    A.progress is the event.  It is triggered after executing the code in the
-    decorated progress routine.
-
-    Now that we have a class with some event, let's create an event handler.
-
-    >>> def vogons(question, answer):
-    ...     print("destroy earth ({0})".format(question))
-
-    Note that the handler (and signal calls) must have the signature defined
-    by the decorated event method.
-
-    This handler only greets the object that triggered the event by using its
-    name attribute.  Let's create some instances of A and register our new
-    event handler to their progress event.
+    ...     def calculate(self, answer=43):
+    ...         print("Answer is: {0}".format(answer))
 
     >>> earth = Earth()
+
+
+    Connect an event handler
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> def vogons(answer):
+    ...     print("{0} vogons destroy earth".format(answer))
     >>> earth.calculate.connect(vogons)
 
-    Now everything has been setup.  When we call the method, the event will be
-    triggered:
 
-    >>> earth.calculate("42+1", "42")
-    42+1 = 42
-    destroy earth (42+1)
+    Trigger the event
+    ~~~~~~~~~~~~~~~~~
 
-    What happens if we disobey the call signature?
+    >>> earth.calculate(42)
+    Answer is: 42
+    42 vogons destroy earth
+
+
+    Disconnect an event handler
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> earth.calculate.disconnect(vogons)
+
+
+    Class based access
+    ~~~~~~~~~~~~~~~~~~
+
+    The function name in the class can be used to invoke events like you
+    would expect from normal member functions, but also for connecting:
+
+    >>> Earth.calculate.connect(earth, vogons)
+    >>> Earth.calculate(earth, "less than 44")
+    Answer is: less than 44
+    less than 44 vogons destroy earth
+
+
+    Class-specific connections
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    If connecting via the class attribute, you can leave the instance
+    argument to obtain a class-wide subscription:
+
+    >>> def UN(instance, answer):
+    ...     print("do nothing")
+
+    >>> Earth.calculate.connect(UN)
 
     >>> earth2 = Earth()
-    >>> earth2.calculate(answer=42)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> earth2.calculate("correct")
+    Answer is: correct
+    do nothing
+
+
+    Disobey the call signature?
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> earth2.calculate(question=42)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-    TypeError: progress() missing 1 required positional argument: 'question'
+    TypeError: calculate() got an unexpected keyword argument 'question'
 
-    Class based access is possible as well:
 
-    >>> Earth.calculate.connect(earth2, vogons)
-    >>> Earth.calculate(earth2, "answer to everything", 42)
-    answer to everything = 42
-    destroy earth (answer to everything)
+    Default arguments
+    ~~~~~~~~~~~~~~~~~
 
     On python3 (and on python2 if you have black-magic installed) default
     arguments work as expected:
 
     >>> if SUPPORTS_DEFAULT_ARGUMENTS:
-    ...     earth2.calculate('the real answer')
-    ... else:   # default arguments not supported, so let's cheat...
-    ...     earth2.calculate('the real answer', 43)
-    the real answer = 43
-    destroy earth (the real answer)
+    ...     earth2.calculate()
+    ... else:   # let's cheat for the sake of this doctest:
+    ...     earth2.calculate(43)
+    Answer is: 43
+    do nothing
+
+
+    Help
+    ~~~~
 
     And check out the help ``help(Earth)`` or ``help(earth.calculate)``, you
     won't notice a thing (at least if you have black-magic installed).

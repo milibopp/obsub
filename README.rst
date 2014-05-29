@@ -57,7 +57,7 @@ The ``event`` decorator from the ``obsub`` module is used as follows:
             print('Stuff {} happens'.format(arg))
 
     # Now define an event handler, the observer
-    def handler(subject, arg):
+    def handler(arg):
         print('Stuff {} is handled'.format(arg))
 
     # Wire everything up...
