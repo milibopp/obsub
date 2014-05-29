@@ -32,7 +32,7 @@ except ImportError:
         def wraps(wrapped):
             """Like functools.wraps, but also preserve the signature."""
             def update_wrapper(wrapper):
-                wrapper.__signature__ = signature(wapped)
+                wrapper.__signature__ = signature(wrapped)
                 return functools.wraps(wrapped)(wrapper)
             return update_wrapper
 
