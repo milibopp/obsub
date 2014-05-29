@@ -10,7 +10,7 @@ The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
 """
 
-__all__ = ['event', 'signal', 'SUPPORTS_DEFAULT_ARGUMENTS']
+__all__ = ['event', 'static_event', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
 
@@ -159,20 +159,20 @@ class event(object):
             return copy.__get__(instance)
 
 
-def signal(function, event_handlers=None):
+def static_event(function, event_handlers=None):
     """
     Decorator for static event functions.
 
     * function -- templace function (will be executed before event handlers)
     * event_handlers -- event handler list object to use
 
-    Calling a signal emits the event, i.e. all registered event handlers are
-    called with the given arguments. Before the event handlers are called,
-    the base function gets a chance to execute.
+    Calling a static_event emits the event, i.e. all registered event
+    handlers are called with the given arguments. Before the event handlers
+    are called, the base function gets a chance to execute.
 
-    You can use `signal` as a decorator, for example:
+    You can use `static_event` as a decorator, for example:
 
-    >>> @signal
+    >>> @static_event
     ... def sig(foo="bar"):
     ...     '''I'm a docstring!'''
     ...     print('In sig!')
