@@ -41,7 +41,7 @@ def _emitter_method(function):
 
     """Internal utility that creates an event method with connectors."""
 
-    key = ' ' + function.__name__
+    key = '_ obsub _' + function.__name__
     def get_handlers(instance):
         return instance.__dict__.get(key, ())
 
