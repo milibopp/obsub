@@ -105,11 +105,13 @@ class event(object):
     """
 
     def __init__(self, function):
+
         """
         Create an instance event based on the member function parameter.
 
         * function -- The function to be wrapped by the decorator.
         """
+
         key = ' ' + function.__name__
         def handlers(instance):
             try:
@@ -118,6 +120,7 @@ class event(object):
                 handlers = []
                 setattr(instance, key, handlers)
                 return handlers
+
         @wraps(function)
         def emit(*instance__and__args, **kwargs):
             instance = instance__and__args[0]
@@ -126,10 +129,13 @@ class event(object):
             for f in handlers(instance)[:]:
                 f(*args, **kwargs)
             return result
+
         def connect(instance, handler):
             handlers(instance).append(handler)
+
         def disconnect(instance, handler):
             handlers(instance).remove(handler)
+
         emit.connect = connect
         emit.disconnect = disconnect
         self.__function = emit
