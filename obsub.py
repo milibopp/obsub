@@ -119,7 +119,9 @@ class event(object):
                 setattr(instance, key, handlers)
                 return handlers
         @wraps(function)
-        def emit(instance, *args, **kwargs):
+        def emit(*instance__and__args, **kwargs):
+            instance = instance__and__args[0]
+            args = instance__and__args[1:]
             result = function(instance, *args, **kwargs)
             for f in handlers(instance)[:]:
                 f(*args, **kwargs)
