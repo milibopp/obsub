@@ -37,6 +37,12 @@ except ImportError:
             return update_wrapper
 
 
+def _invoke_all(handlers, args, kwargs):
+    """Internal utility to invoke all handlers in a list."""
+    for f in handlers[:]:
+        f(*args, **kwargs)
+
+
 def _emitter_method(function):
 
     """Internal utility that creates an event method with connectors."""
@@ -52,8 +58,7 @@ def _emitter_method(function):
         args = self__args[1:]
         result = function(self, *args, **kwargs)
         # Invoke instance-specfic handlers:
-        for f in get_handlers(self)[:]:
-            f(*args, **kwargs)
+        _invoke_all(get_handlers(self), args, kwargs)
         # Invoke (base) class-specfic handlers:
         try:
             mro = self.__class__.__mro__
@@ -61,8 +66,7 @@ def _emitter_method(function):
             pass
         else:
             for cls in mro:
-                for f in get_handlers(cls)[:]:
-                    f(self, *args, **kwargs)
+                _invoke_all(get_handlers(cls), self__args, kwargs)
         return result
 
     # create basic tools for managing connection/disconnection of handlers
@@ -296,8 +300,7 @@ def static_event(function, event_handlers=None):
     @wraps(function)
     def wrapper(*args, **kwargs):
         result = function(*args, **kwargs)
-        for f in event_handlers[:]:
-            f(*args, **kwargs)
+        _invoke_all(event_handlers, args, kwargs)
         return result
     wrapper.connect = event_handlers.append
     wrapper.disconnect = event_handlers.remove
