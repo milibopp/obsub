@@ -37,132 +37,226 @@ except ImportError:
             return update_wrapper
 
 
+def _invoke_all(handlers, args, kwargs):
+    """Internal utility to invoke all handlers in a list."""
+    for f in handlers[:]:
+        f(*args, **kwargs)
+
+
+def _emitter_method(function):
+
+    """Internal utility that creates an event method with connectors."""
+
+    key = '_ obsub _' + function.__name__
+    def get_handlers(instance):
+        return instance.__dict__.get(key, ())
+
+    # Wrap the event emitter function to retain docstring and signature:
+    @wraps(function)
+    def emit(*self__args, **kwargs):
+        self = self__args[0]
+        args = self__args[1:]
+        result = function(self, *args, **kwargs)
+        # Invoke instance-specfic handlers:
+        _invoke_all(get_handlers(self), args, kwargs)
+        # Invoke (base) class-specfic handlers:
+        try:
+            mro = self.__class__.__mro__
+        except AttributeError:              # Old style class..
+            pass
+        else:
+            for cls in mro:
+                _invoke_all(get_handlers(cls), self__args, kwargs)
+        return result
+
+    # create basic tools for managing connection/disconnection of handlers
+    def make_handlers(instance):
+        try:
+            # Use item access to ensure we are querying an attribute that
+            # is specific to this instance/class:
+            return instance.__dict__[key]
+        except KeyError:
+            handlers = []
+            # In case 'instance' is the owner class, instance.__dict__ can
+            # be a read-only proxy. Therefore, we need to use setattr()
+            # rather than item access:
+            setattr(instance, key, handlers)
+            return handlers
+
+    def connect(instance, handler):
+        """Connect an event handler."""
+        make_handlers(instance).append(handler)
+
+    def disconnect(instance, handler):
+        """Disconnect an event handler."""
+        make_handlers(instance).remove(handler)
+
+    emit.connect = connect
+    emit.disconnect = disconnect
+    return emit
+
+
+def _class_connector(owner, method):
+
+    """Internal utility to create class based connect/disconnect functions."""
+
+    def connector(*instance__handler):
+        """
+        Connect/disconnect an event handler.
+
+        :param instance: optional
+        :param handler: required
+
+        If the instance parameter is specified, the connection will be
+        managed with regard to the list of instance specific event handlers.
+
+        Otherwise, the handler will be the list of class-specific event
+        handlers is managed. Class specific connections enable to receive
+        notifications from all instances of any subclass. In these events
+        the instance is given as the first argument to the handler.
+        """
+        try:
+            method(*instance__handler)
+        except TypeError:
+            assert hasattr(owner, '__mro__'), \
+                "Class based connection requires new style classes!"
+            method(owner, *instance__handler)
+
+    connector.__name__ = method.__name__
+    return connector
+
+
 class event(object):
 
     """
     Decorator for instance events (analogous to member functions).
 
-    The following example demonstrates its functionality.
-    A class method can be decorated as follows:
+    The basic usage should be easy to grasp:
+
+
+    Define an instance specific event inside a class
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> from obsub import event
 
     >>> class Earth(object):
     ...     @event
-    ...     def calculate(self, question, answer=43):
-    ...         '''Calling this method will invoke all registered handlers.'''
-    ...         print("{0} = {1}".format(question, answer))
-
-    A.progress is the event.  It is triggered after executing the code in the
-    decorated progress routine.
-
-    Now that we have a class with some event, let's create an event handler.
-
-    >>> def vogons(question, answer):
-    ...     print("destroy earth ({0})".format(question))
-
-    Note that the handler (and signal calls) must have the signature defined
-    by the decorated event method.
-
-    This handler only greets the object that triggered the event by using its
-    name attribute.  Let's create some instances of A and register our new
-    event handler to their progress event.
+    ...     def calculate(self, answer=43):
+    ...         print("Answer is: {0}".format(answer))
 
     >>> earth = Earth()
+
+
+    Connect an event handler
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> def vogons(answer):
+    ...     print("{0} vogons destroy earth".format(answer))
     >>> earth.calculate.connect(vogons)
 
-    Now everything has been setup.  When we call the method, the event will be
-    triggered:
 
-    >>> earth.calculate("42+1", "42")
-    42+1 = 42
-    destroy earth (42+1)
+    Trigger the event
+    ~~~~~~~~~~~~~~~~~
 
-    What happens if we disobey the call signature?
+    >>> earth.calculate(42)
+    Answer is: 42
+    42 vogons destroy earth
+
+
+    Disconnect an event handler
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> earth.calculate.disconnect(vogons)
+
+
+    Class based access
+    ~~~~~~~~~~~~~~~~~~
+
+    The function name in the class can be used to invoke events like you
+    would expect from normal member functions, but also for connecting:
+
+    >>> Earth.calculate.connect(earth, vogons)
+    >>> Earth.calculate(earth, "less than 44")
+    Answer is: less than 44
+    less than 44 vogons destroy earth
+
+
+    Class-specific connections
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    If connecting via the class attribute, you can leave the instance
+    argument to obtain a class-wide subscription:
+
+    >>> def UN(instance, answer):
+    ...     print("do nothing")
+
+    >>> Earth.calculate.connect(UN)
 
     >>> earth2 = Earth()
-    >>> earth2.calculate(answer=42)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> earth2.calculate("correct")
+    Answer is: correct
+    do nothing
+
+
+    Disobey the call signature?
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> earth2.calculate(question=42)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
-    TypeError: progress() missing 1 required positional argument: 'question'
+    TypeError: calculate() got an unexpected keyword argument 'question'
 
-    Class based access is possible as well:
 
-    >>> Earth.calculate.connect(earth2, vogons)
-    >>> Earth.calculate(earth2, "answer to everything", 42)
-    answer to everything = 42
-    destroy earth (answer to everything)
+    Default arguments
+    ~~~~~~~~~~~~~~~~~
 
     On python3 (and on python2 if you have black-magic installed) default
     arguments work as expected:
 
     >>> if SUPPORTS_DEFAULT_ARGUMENTS:
-    ...     earth2.calculate('the real answer')
-    ... else:   # default arguments not supported, so let's cheat...
-    ...     earth2.calculate('the real answer', 43)
-    the real answer = 43
-    destroy earth (the real answer)
+    ...     earth2.calculate()
+    ... else:   # let's cheat for the sake of this doctest:
+    ...     earth2.calculate(43)
+    Answer is: 43
+    do nothing
+
+
+    Help
+    ~~~~
 
     And check out the help ``help(Earth)`` or ``help(earth.calculate)``, you
     won't notice a thing (at least if you have black-magic installed).
     """
 
     def __init__(self, function):
-
         """
         Create an instance event based on the member function parameter.
 
         * function -- The function to be wrapped by the decorator.
         """
-
-        key = ' ' + function.__name__
-        def handlers(instance):
-            try:
-                return getattr(instance, key)
-            except AttributeError:
-                handlers = []
-                setattr(instance, key, handlers)
-                return handlers
-
-        @wraps(function)
-        def emit(*instance__and__args, **kwargs):
-            instance = instance__and__args[0]
-            args = instance__and__args[1:]
-            result = function(instance, *args, **kwargs)
-            for f in handlers(instance)[:]:
-                f(*args, **kwargs)
-            return result
-
-        def connect(instance, handler):
-            handlers(instance).append(handler)
-
-        def disconnect(instance, handler):
-            handlers(instance).remove(handler)
-
-        emit.connect = connect
-        emit.disconnect = disconnect
-        self.__function = emit
+        self.__emit = _emitter_method(function)
 
     def __get__(self, instance, owner):
         """
-        Get the instance event for the specified instance or class.
-
-        See http://docs.python.org/reference/datamodel.html?highlight=__get__#object.__get__
-        for a detailed explanation of what this special method usually does.
+        Query event for specific to one instance or class.
 
         * instance -- The instance of event invoked.
         * owner -- The owner class.
         """
-        # this case corresponds to access via the owner class:
+        orig = self.__emit
+        # Copy the unbound function before setting the connector methods.
+        # This is necessary since the instance method acquired later on
+        # doesn't support setting attributes.
+        emit = copy_function(orig)
         if instance is None:
-            return self.__function
-        # attribute access via instance:
+            # access via class:
+            emit.connect = _class_connector(owner, orig.connect)
+            emit.disconnect = _class_connector(owner, orig.disconnect)
+            return emit
         else:
-            # Copy the unbound function before setting the connector
-            # methods. This is necessary since the instance method acquired
-            # later on doesn't support setting attributes.
-            orig = self.__function
-            copy = copy_function(orig)
-            copy.connect = orig.connect.__get__(instance)
-            copy.disconnect = orig.disconnect.__get__(instance)
-            return copy.__get__(instance)
+            # access via instance:
+            emit.connect = orig.connect.__get__(instance)
+            emit.disconnect = orig.disconnect.__get__(instance)
+            return emit.__get__(instance)
 
 
 def static_event(function, event_handlers=None):
@@ -206,8 +300,7 @@ def static_event(function, event_handlers=None):
     @wraps(function)
     def wrapper(*args, **kwargs):
         result = function(*args, **kwargs)
-        for f in event_handlers[:]:
-            f(*args, **kwargs)
+        _invoke_all(event_handlers, args, kwargs)
         return result
     wrapper.connect = event_handlers.append
     wrapper.disconnect = event_handlers.remove
