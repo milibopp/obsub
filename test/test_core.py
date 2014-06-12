@@ -144,6 +144,14 @@ class _TestCore(unittest.TestCase):
         gc.collect()
         assert wr() is None
 
+    def test_equality(self):
+
+        src0 = self.cls()
+        src1 = self.cls()
+
+        self.assertEqual(self.cls.emit, self.cls.emit)
+        self.assertEqual(src0.emit, src0.emit)
+        self.assertNotEqual(src0.emit, src1.emit)
 
 class TestCoreNewStyle(_TestCore):
     """Test the obsub module for new style classes."""

@@ -14,7 +14,6 @@ __all__ = ['event', 'static_event', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
 
-import sys
 import types
 
 try:
@@ -38,7 +37,12 @@ except ImportError:
 
 
 def _invoke_all(handlers, args, kwargs):
-    """Internal utility to invoke all handlers in a list."""
+    """
+    Internal utility to invoke all handlers in a list.
+
+    Unlike ``map(fn, list)`` this applies one set of arguments to a list of
+    functions rather than multiple arguments to a single function.
+    """
     for f in handlers[:]:
         f(*args, **kwargs)
 
@@ -93,7 +97,67 @@ def _emitter_method(function):
 
     emit.connect = connect
     emit.disconnect = disconnect
+    emit.__func__ = function
     return emit
+
+
+class _event_method_proxy(object):
+
+    """Abstract base class for bound/unbound method proxies."""
+
+    def __init__(self, function, instance):
+        """Create a method proxy from a function and an instance/class."""
+        self.function = function
+        self._instance = instance
+
+    def connect(self, handler):
+        """Connect an event handler."""
+        self.function.connect(self._instance, handler)
+
+    def disconnect(self, handler):
+        """Connect an event handler."""
+        self.function.disconnect(self._instance, handler)
+
+    def __eq__(self, other):
+        """Compare equality."""
+        try:
+            return (self.function == other.function and
+                    self._instance is other._instance)
+        except AttributeError:
+            return False
+
+    @property
+    def __func__(self):
+        """The function behind this proxy."""
+        return self.function
+
+
+class bound_event(_event_method_proxy):
+
+    """Method proxy for events bound to an instance."""
+
+    @property
+    def __self__(self):
+        """The instance that this proxy is attached to."""
+        return self._instance
+
+    def __call__(*self__args, **kwargs):
+        """Invoke ```function(self.__self__, *args, **kwargs).``."""
+        self = self__args[0]
+        args = self__args[1:]
+        return self.function(self._instance, *args, **kwargs)
+
+
+class unbound_event(_event_method_proxy):
+
+    """Method proxy for events bound not bound to an instance."""
+
+    def __call__(*self__args, **kwargs):
+        """Invoke ```self.function(*args, **kwargs).``."""
+        self = self__args[0]
+        args = self__args[1:]
+        # instance must be given in *args:
+        return self.function(*args, **kwargs)
 
 
 class event(object):
@@ -212,21 +276,10 @@ class event(object):
         * instance -- The instance of event invoked.
         * owner -- The owner class.
         """
-        orig = self.__emit
-        # Copy the unbound function before setting the connector methods.
-        # This is necessary since the instance method acquired later on
-        # doesn't support setting attributes.
-        emit = copy_function(orig)
         if instance is None:
-            # access via class:
-            emit.connect = orig.connect.__get__(owner)
-            emit.disconnect = orig.disconnect.__get__(owner)
-            return emit
+            return unbound_event(self.__emit, owner)
         else:
-            # access via instance:
-            emit.connect = orig.connect.__get__(instance)
-            emit.disconnect = orig.disconnect.__get__(instance)
-            return emit.__get__(instance)
+            return bound_event(self.__emit, instance)
 
 
 def static_event(function, event_handlers=None):
@@ -275,17 +328,3 @@ def static_event(function, event_handlers=None):
     wrapper.connect = event_handlers.append
     wrapper.disconnect = event_handlers.remove
     return wrapper
-
-
-if sys.version_info >= (3,0):
-    def copy_function(func):
-        """Create a copy of a function instance."""
-        return types.FunctionType(func.__code__, func.__globals__,
-                                  func.__name__, func.__defaults__,
-                                  func.__closure__)
-else:
-    def copy_function(func):
-        """Create a copy of a function instance."""
-        return types.FunctionType(func.func_code, func.func_globals,
-                                  func.func_name, func.func_defaults,
-                                  func.func_closure)
