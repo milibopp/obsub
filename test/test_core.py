@@ -122,23 +122,6 @@ class _TestCore(unittest.TestCase):
         self.cls.emit(src, "Hello", "World")
         self.check_stack([(obs, 0, src, "Hello", "World")])
 
-    def test_class_based_instance_connection(self):
-        """Instance-specific connections can be managed via their class."""
-        # subclass in order not to accidentally overwrite class properties:
-        class cls(self.cls):
-            pass
-        src = cls()
-        obs = Observer(src, self.call_stack)
-        # Check connection:
-        cls.emit.connect(src, obs)
-        src.emit(second="World", first="Hello")
-        self.check_stack([(obs, 0, src, "Hello", "World")])
-        # Now check disconnection:
-        cls.emit.disconnect(src, obs)
-        self.call_stack = []
-        src.emit(second="World", first="Hello")
-        self.check_stack([])
-
     def test_keep_alive(self):
         """A reference to a bound event method keeps its owner instance alive."""
         src = self.cls()

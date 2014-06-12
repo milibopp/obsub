@@ -96,36 +96,6 @@ def _emitter_method(function):
     return emit
 
 
-def _class_connector(owner, method):
-
-    """Internal utility to create class based connect/disconnect functions."""
-
-    def connector(*instance__handler):
-        """
-        Connect/disconnect an event handler.
-
-        :param instance: optional
-        :param handler: required
-
-        If the instance parameter is specified, the connection will be
-        managed with regard to the list of instance specific event handlers.
-
-        Otherwise, the handler will be the list of class-specific event
-        handlers is managed. Class specific connections enable to receive
-        notifications from all instances of any subclass. In these events
-        the instance is given as the first argument to the handler.
-        """
-        try:
-            method(*instance__handler)
-        except TypeError:
-            assert hasattr(owner, '__mro__'), \
-                "Class based connection requires new style classes!"
-            method(owner, *instance__handler)
-
-    connector.__name__ = method.__name__
-    return connector
-
-
 class event(object):
 
     """
@@ -173,9 +143,9 @@ class event(object):
     ~~~~~~~~~~~~~~~~~~
 
     The function name in the class can be used to invoke events like you
-    would expect from normal member functions, but also for connecting:
+    would expect from normal member functions:
 
-    >>> Earth.calculate.connect(earth, vogons)
+    >>> earth.calculate.connect(vogons)
     >>> Earth.calculate(earth, "less than 44")
     Answer is: less than 44
     less than 44 vogons destroy earth
@@ -249,8 +219,8 @@ class event(object):
         emit = copy_function(orig)
         if instance is None:
             # access via class:
-            emit.connect = _class_connector(owner, orig.connect)
-            emit.disconnect = _class_connector(owner, orig.disconnect)
+            emit.connect = orig.connect.__get__(owner)
+            emit.disconnect = orig.disconnect.__get__(owner)
             return emit
         else:
             # access via instance:
