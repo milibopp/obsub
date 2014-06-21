@@ -131,6 +131,18 @@ class _event_method_proxy(object):
         """The function behind this proxy."""
         return self.function
 
+    def __get__(self, instance, owner=None):
+        """
+        Query event for specific to one instance or class.
+
+        * instance -- The instance of event invoked.
+        * owner -- The owner class.
+        """
+        if instance is None:
+            return unbound_event(self.__func__, owner)
+        else:
+            return bound_event(self.__func__, instance)
+
 
 class bound_event(_event_method_proxy):
 
@@ -267,7 +279,7 @@ class event(object):
 
         * function -- The function to be wrapped by the decorator.
         """
-        self.__emit = _emitter_method(function)
+        self.__emit = _event_method_proxy(_emitter_method(function), None)
 
     def __get__(self, instance, owner):
         """
@@ -276,10 +288,7 @@ class event(object):
         * instance -- The instance of event invoked.
         * owner -- The owner class.
         """
-        if instance is None:
-            return unbound_event(self.__emit, owner)
-        else:
-            return bound_event(self.__emit, instance)
+        return self.__emit.__get__(instance, owner)
 
 
 def static_event(function, event_handlers=None):
