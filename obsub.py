@@ -17,6 +17,13 @@ __version__ = '0.2'
 import types
 
 try:
+    from inspect import getfullargspec as _getargspec
+except ImportError:
+    from inspect import getargspec as _getargspec
+from inspect import formatargspec
+
+
+try:
     from black_magic.decorator import wraps as _wraps
     SUPPORTS_DEFAULT_ARGUMENTS = True
 except ImportError:
@@ -159,6 +166,14 @@ class bound_event(_event_method_proxy):
         args = self__args[1:]
         return self.function(self._instance, *args, **kwargs)
 
+    def __repr__(self):
+        """Return a representation including the function signature."""
+        return "<event {0}.{1}{2} of {3!r}>".format(
+            self._instance.__class__.__name__,
+            self.function.__name__,
+            formatargspec(*_getargspec(self.function)),
+            self._instance)
+
 
 class unbound_event(_event_method_proxy):
 
@@ -170,6 +185,13 @@ class unbound_event(_event_method_proxy):
         args = self__args[1:]
         # instance must be given in *args:
         return self.function(*args, **kwargs)
+
+    def __repr__(self):
+        """Return a representation including the function signature."""
+        return "<event {0}.{1}{2}>".format(
+            self._instance.__name__,
+            self.function.__name__,
+            formatargspec(*_getargspec(self.function)))
 
 
 class event(object):
