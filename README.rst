@@ -10,15 +10,16 @@ decorator.
 
 This module has been unmaintained since around 2014. The authors have
 moved on to other alternatives to event handling. There is also
-[observed](https://github.com/DanielSank/observed), which was partially inspired
-by *obsub*, however, has not seen many updates lately. @aepsil0n has been
-writing with functional reactive programming (FRP), but not for Python.
+`observed <https://github.com/DanielSank/observed>`_ by @DanielSank, which
+was partially inspired by *obsub*, however, has not seen many updates lately.
+@aepsil0n has been writing with functional reactive programming (FRP), but
+not for Python.
 
 FRP is a higher-level abstraction than the observer pattern, that essentially
 is a purely functional approach to unidirectional dataflow, composing your
 programs of event stream transformations. Experience has shown, that is easier
 to compose and to test than the raw observer pattern. A solid implementation in
-Python is [RxPY](https://github.com/ReactiveX/RxPY), part of the ReactiveX
+Python is `RxPY <https://github.com/ReactiveX/RxPY>`_, part of the ReactiveX
 project.
 
 
