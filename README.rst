@@ -6,7 +6,9 @@ obsub
 Small python module that implements the observer pattern via a
 decorator.
 
-*NOTE* This module has been unmaintained since around 2014. The authors have
+**Deprecation notice**
+
+This module has been unmaintained since around 2014. The authors have
 moved on to other alternatives to event handling. There is also
 [observed](https://github.com/DanielSank/observed), which was partially inspired
 by *obsub*, however, has not seen many updates lately. @aepsil0n has been
