@@ -6,8 +6,8 @@ python:
   - "3.3"
   - "pypy"
 install:
-  - pip install . --use-mirrors
-  - pip install coveralls --use-mirrors
+  - pip install .
+  - pip install coveralls
 script:
   - coverage run --source=obsub setup.py nosetests
 after_success:
