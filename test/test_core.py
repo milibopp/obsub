@@ -5,8 +5,10 @@ Contains a converted version of all of the doctests.
 
 """
 # test utilities
+import gc
 import unittest
-import weakref, gc
+import weakref
+import sys
 
 # tested module
 from obsub import event
@@ -19,6 +21,7 @@ class NewStyle(object):
     def emit(self, first, second):
         self.count += 1
 
+
 class OldStyle:
     def __init__(self):
         self.count = 0
@@ -26,25 +29,38 @@ class OldStyle:
     def emit(self, first, second):
         self.count += 1
 
+
 class Observer(object):
-    def __init__(self, call_stack):
+    def __init__(self, source, call_stack):
         self.call_stack = call_stack
-    def __call__(self, source, first, second):
+        self.source = weakref.ref(source)
+    def __call__(self, first, second):
+        source = self.source()
         diff = (sum(1 for call in self.call_stack if call[2] == source)
                 - source.count) + 1
         self.call_stack.append((self, diff, source, first, second))
 
-class TestCore(unittest.TestCase):
+class ClassObserver(object):
+    def __init__(self, call_stack):
+        self.call_stack = call_stack
+    def __call__(self, inst, first, second):
+        source = inst
+        diff = (sum(1 for call in self.call_stack if call[2] == source)
+                - source.count) + 1
+        self.call_stack.append((self, diff, source, first, second))
+
+
+class _TestCore(unittest.TestCase):
     """Test the obsub module for new style classes."""
-    cls = NewStyle
+    cls = None  # OVERWRITE! either NewStyle/OldStyle
 
     def setUp(self):
         self.call_stack = []
         self.maxDiff = None
 
     def observer(self, instance):
-        observer = Observer(self.call_stack)
-        instance.emit += observer
+        observer = Observer(instance, self.call_stack)
+        instance.emit.connect(observer)
         return observer
 
     def check_stack(self, expected):
@@ -61,7 +77,7 @@ class TestCore(unittest.TestCase):
         """Removal of event handlers works correctly."""
         src = self.cls()
         obs = self.observer(src)
-        src.emit -= obs
+        src.emit.disconnect(obs)
         src.emit("something", "arbitrary")
         self.check_stack([])
 
@@ -128,7 +144,68 @@ class TestCore(unittest.TestCase):
         gc.collect()
         assert wr() is None
 
-# ERRORS:
-class TestCoreOldStyle(TestCore):
-    cls = OldStyle
+    def test_equality(self):
+
+        src0 = self.cls()
+        src1 = self.cls()
+
+        self.assertEqual(self.cls.emit, self.cls.emit)
+        self.assertEqual(src0.emit, src0.emit)
+        self.assertNotEqual(src0.emit, src1.emit)
+
+class TestCoreNewStyle(_TestCore):
+    """Test the obsub module for new style classes."""
+    cls = NewStyle
+
+    def test_class_based_class_connection(self):
+
+        """Class-specific connections can be managed."""
+
+        # subclass in order not to accidentally overwrite class properties:
+        class cls(self.cls):
+            pass
+
+        src = cls()
+        obs = ClassObserver(self.call_stack)
+
+        # Check connection:
+        cls.emit.connect(obs)
+        src.emit(second="World", first="Hello")
+        self.check_stack([(obs, 0, src, "Hello", "World")])
+
+        # Now check disconnection:
+        cls.emit.disconnect(obs)
+        self.call_stack = []
+        src.emit(second="World", first="Hello")
+        self.check_stack([])
+
+    def test_class_based_class_connection_with_subclasses(self):
+
+        """Class-specific connections get notified about subclass events."""
+
+        # subclass in order not to accidentally overwrite class properties:
+        class cls(self.cls):
+            pass
+        class subcls(cls):
+            pass
+
+        src = subcls()
+        obs = ClassObserver(self.call_stack)
+
+        # Check connection:
+        cls.emit.connect(obs)
+        src.emit(second="World", first="Hello")
+        self.check_stack([(obs, 0, src, "Hello", "World")])
+
+        # Now check disconnection:
+        cls.emit.disconnect(obs)
+        self.call_stack = []
+        src.emit(second="World", first="Hello")
+        self.check_stack([])
+
+
+if sys.version_info < (3, 0):
+    class TestCoreOldStyle(_TestCore):
+        """Test the obsub module for old style classes."""
+        cls = OldStyle
 

@@ -1,4 +1,4 @@
-'''
+"""
 This is an implementation of the observer pattern.  It uses function
 decorators to achieve the desired event registration mechanism.
 
@@ -8,215 +8,356 @@ http://en.wikipedia.org/wiki/Observer_pattern
 
 The idea is based on this thread:
 http://stackoverflow.com/questions/1904351/python-observer-pattern-examples-tips
+"""
 
-'''
-
-import functools
-import inspect
-
-try:
-    # use python3 signatures if available
-    # this takes care of enforcing the correct signature at call time and 
-    # provides the correct default arguments
-    from inspect import signature
-except ImportError: # pragma: no cover
-    # python2 has no support for signatures
-    def signature(fn):
-        return None
-
-__all__ = ['event']
+__all__ = ['event', 'static_event', 'SUPPORTS_DEFAULT_ARGUMENTS']
 __version__ = '0.2'
 
 
-class event(object):
-    '''
-    This class serves as a utility to decorate a function as an event.
+import types
 
-    The following example demonstrates its functionality in an abstract way.
-    A class method can be decorated as follows:
+try:
+    from inspect import getfullargspec as _getargspec
+except ImportError:
+    from inspect import getargspec as _getargspec
+from inspect import formatargspec
 
-    >>> class A(object):
-    ...     def __init__(self, name):
-    ...         self.name = name
-    ...
-    ...     @event
-    ...     def progress(self, first, second):
-    ...         print("Doing something...")
 
-    A.progress is the event.  It is triggered after executing the code in the
-    decorated progress routine.
+try:
+    from black_magic.decorator import wraps as _wraps
+    SUPPORTS_DEFAULT_ARGUMENTS = True
+except ImportError:
+    import functools
+    try:
+        from inspect import signature
+    except ImportError:     # python2
+        SUPPORTS_DEFAULT_ARGUMENTS = False
+        _wraps = functools.wraps
+    else:                   # python3
+        SUPPORTS_DEFAULT_ARGUMENTS = True
+        def _wraps(wrapped):
+            """Like functools.wraps, but also preserve the signature."""
+            def update_wrapper(wrapper):
+                wrapper.__signature__ = signature(wrapped)
+                return functools.wraps(wrapped)(wrapper)
+            return update_wrapper
 
-    Now that we have a class with some event, let's create an event handler.
 
-    >>> def handler(self, first, second):
-    ...     print("%s %s and %s!" % (first, self.name, second))
+def _invoke_all(handlers, args, kwargs):
+    """
+    Internal utility to invoke all handlers in a list.
 
-    Note that the handler (and signal calls) must have the signature defined
-    by the decorated event method.
+    Unlike ``map(fn, list)`` this applies one set of arguments to a list of
+    functions rather than multiple arguments to a single function.
+    """
+    for f in handlers[:]:
+        f(*args, **kwargs)
 
-    This handler only greets the object that triggered the event by using its
-    name attribute.  Let's create some instances of A and register our new
-    event handler to their progress event.
 
-    >>> a = A("Foo")
-    >>> b = A("Bar")
-    >>> a.progress += handler
-    >>> b.progress += handler
+def _emitter_method(function, wraps):
 
-    Now everything has been setup.  When we call the method, the event will be
-    triggered:
+    """Internal utility that creates an event method with connectors."""
 
-    >>> a.progress("Hello", "World")
-    Doing something...
-    Hello Foo and World!
-    >>> b.progress(second="Others", first="Hi")
-    Doing something...
-    Hi Bar and Others!
+    key = '_ obsub _' + function.__name__
+    def get_handlers(instance):
+        return instance.__dict__.get(key, ())
 
-    What happens if we disobey the call signature?
+    # Wrap the event emitter function to retain docstring and signature:
+    @wraps(function)
+    def emit(*self__args, **kwargs):
+        self = self__args[0]
+        args = self__args[1:]
+        result = function(self, *args, **kwargs)
+        # Invoke instance-specfic handlers:
+        _invoke_all(get_handlers(self), args, kwargs)
+        # Invoke (base) class-specfic handlers:
+        try:
+            mro = self.__class__.__mro__
+        except AttributeError:              # Old style class..
+            pass
+        else:
+            for cls in mro:
+                _invoke_all(get_handlers(cls), self__args, kwargs)
+        return result
 
-    >>> c = A("World")
-    >>> c.progress(second="World")  # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    TypeError: progress() missing 1 required positional argument: 'first'
+    # create basic tools for managing connection/disconnection of handlers
+    def make_handlers(instance):
+        try:
+            # Use item access to ensure we are querying an attribute that
+            # is specific to this instance/class:
+            return instance.__dict__[key]
+        except KeyError:
+            handlers = []
+            # In case 'instance' is the owner class, instance.__dict__ can
+            # be a read-only proxy. Therefore, we need to use setattr()
+            # rather than item access:
+            setattr(instance, key, handlers)
+            return handlers
 
-    Class based access is possible as well:
+    def connect(instance, handler):
+        """Connect an event handler."""
+        make_handlers(instance).append(handler)
 
-    >>> A.progress(a, "Hello", "Y")
-    Doing something...
-    Hello Foo and Y!
+    def disconnect(instance, handler):
+        """Disconnect an event handler."""
+        make_handlers(instance).remove(handler)
 
-    Bound methods keep the instance alive:
+    emit.connect = connect
+    emit.disconnect = disconnect
+    emit.__func__ = function
+    return emit
 
-    >>> f = a.progress
-    >>> import weakref, gc
-    >>> wr = weakref.ref(a)
-    >>> del a
-    >>> c=gc.collect()
-    >>> assert wr() is not None
-    >>> f("Hi", "Z")
-    Doing something...
-    Hi Foo and Z!
 
-    If we delete the hard reference to the bound method and run the garbage
-    collector (to make sure it is run at all), the object will be gone:
+class _event_method_proxy(object):
 
-    >>> del f
-    >>> c=gc.collect()
-    >>> assert wr() is None
+    """Abstract base class for bound/unbound method proxies."""
 
-    '''
+    def __init__(self, function, instance):
+        """Create a method proxy from a function and an instance/class."""
+        self.function = function
+        self._instance = instance
 
-    def __init__(self, function):
-        '''
-        Constructor.
+    def connect(self, handler):
+        """Connect an event handler."""
+        self.function.connect(self._instance, handler)
 
-        * function -- The function to be wrapped by the decorator.
+    def disconnect(self, handler):
+        """Connect an event handler."""
+        self.function.disconnect(self._instance, handler)
 
-        '''
-        # Copy docstring and other attributes from function
-        functools.update_wrapper(self, function)
-        self.__signature__ = signature(function)
-        # Used to enforce call signature even when no slot is connected.
-        # Can also execute code (called before handlers)
-        self.__function = function
+    def __eq__(self, other):
+        """Compare equality."""
+        try:
+            return (self.function == other.function and
+                    self._instance is other._instance)
+        except AttributeError:
+            return False
 
-    def __set__(self, instance, value):
-        '''
-        This is a NOP preventing that a boundevent instance is stored.
+    @property
+    def __func__(self):
+        """The function behind this proxy."""
+        return self.function
 
-        This prevents  operations like  `a.progress += handler`  to have
-        side effects that result in a cyclic reference.
-
-        http://stackoverflow.com/questions/18287336/memory-leak-when-invoking-iadd-via-get-without-using-temporary
-
-        '''
-        pass
-
-    def __get__(self, instance, owner):
-        '''
-        Overloaded __get__ method.  Defines the object resulting from
-        a method/function decorated with @event.
-
-        See http://docs.python.org/reference/datamodel.html?highlight=__get__#object.__get__
-        for a detailed explanation of what this special method usually does.
+    def __get__(self, instance, owner=None):
+        """
+        Query event for specific to one instance or class.
 
         * instance -- The instance of event invoked.
         * owner -- The owner class.
-
-        '''
-        # this case corresponds to access via the owner class:
+        """
         if instance is None:
-            @functools.wraps(self.__function)
-            def wrapper(instance, *args, **kwargs):
-                return self.__get__(instance, owner)(*args, **kwargs)
+            return unbound_event(self.__func__, owner)
         else:
-            wrapper = functools.wraps(self.__function)(boundevent(instance, self.__function))
-        wrapper.__signature__ = self.__signature__
-        return wrapper
+            return bound_event(self.__func__, instance)
 
 
-class boundevent(object):
-    '''Private helper class for event system.'''
+class bound_event(_event_method_proxy):
 
-    def __init__(self, instance, function):
-        '''
-        Constructor.
-
-        * instance -- the instance whose member the event is
-
-        '''
-        self.instance = instance
-        self.__function = function
-        self.__key = ' ' + function.__name__
+    """Method proxy for events bound to an instance."""
 
     @property
-    def __event_handlers(self):
-        if self.__key not in self.instance.__dict__:
-            self.instance.__dict__[self.__key] = []
-        return self.instance.__dict__[self.__key]
+    def __self__(self):
+        """The instance that this proxy is attached to."""
+        return self._instance
 
-    def __iadd__(self, function):
-        '''
-        Overloaded += operator.  It registers event handlers to the event.
+    def __call__(*self__args, **kwargs):
+        """Invoke ```function(self.__self__, *args, **kwargs).``."""
+        self = self__args[0]
+        args = self__args[1:]
+        return self.function(self._instance, *args, **kwargs)
 
-        * function -- The right-hand-side argument of the operator; this is the
-            event handling function that registers to the event.
+    def __repr__(self):
+        """Return a representation including the function signature."""
+        return "<event {0}.{1}{2} of {3!r}>".format(
+            self._instance.__class__.__name__,
+            self.function.__name__,
+            formatargspec(*_getargspec(self.function)),
+            self._instance)
 
-        '''
-        # Add the function as a new event handler
-        self.__event_handlers.append(function)
-        # Return the boundevent instance itself for coherent syntax behaviour
-        return self
 
-    def __isub__(self, function):
-        '''
-        Overloaded -= operator.  It removes registered event handlers from
-        the event.
+class unbound_event(_event_method_proxy):
 
-        * function -- The right-hand-side argument of the operator; this is the
-            function that needs to be removed from the list of event handlers.
+    """Method proxy for events bound not bound to an instance."""
 
-        '''
-        # Remove the function from the list of registered event handlers
-        self.__event_handlers.remove(function)
-        # Return the boundevent instance itself for coherent syntax behaviour
-        return self
+    def __call__(*self__args, **kwargs):
+        """Invoke ```self.function(*args, **kwargs).``."""
+        self = self__args[0]
+        args = self__args[1:]
+        # instance must be given in *args:
+        return self.function(*args, **kwargs)
 
-    def __call__(self, *args, **kwargs):
-        '''
-        Overloaded call method; it defines the behaviour of boundevent().
-        When the event is called, all registered event handlers are called.
+    def __repr__(self):
+        """Return a representation including the function signature."""
+        return "<event {0}.{1}{2}>".format(
+            self._instance.__name__,
+            self.function.__name__,
+            formatargspec(*_getargspec(self.function)))
 
-        * *args -- Arguments given to the event handlers.
-        * **kwargs -- Keyword arguments given to the event handlers.
 
-        '''
-        # Enforce signature and possibly execute entry code. This makes sure
-        # any inconsistent call will be caught immediately, independent of
-        # connected handlers.
-        result = self.__function(self.instance, *args, **kwargs)
-        # Call all registered event handlers
-        for f in self.__event_handlers[:]:
-            f(self.instance, *args, **kwargs)
+class event(object):
+
+    """
+    Decorator for instance events (analogous to member functions).
+
+    The basic usage should be easy to grasp:
+
+
+    Define an instance specific event inside a class
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> from obsub import event
+
+    >>> class Earth(object):
+    ...     @event
+    ...     def calculate(self, answer=43):
+    ...         print("Answer is: {0}".format(answer))
+
+    >>> earth = Earth()
+
+
+    Connect an event handler
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> def vogons(answer):
+    ...     print("{0} vogons destroy earth".format(answer))
+    >>> earth.calculate.connect(vogons)
+
+
+    Trigger the event
+    ~~~~~~~~~~~~~~~~~
+
+    >>> earth.calculate(42)
+    Answer is: 42
+    42 vogons destroy earth
+
+
+    Disconnect an event handler
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> earth.calculate.disconnect(vogons)
+
+
+    Class based access
+    ~~~~~~~~~~~~~~~~~~
+
+    The function name in the class can be used to invoke events like you
+    would expect from normal member functions:
+
+    >>> earth.calculate.connect(vogons)
+    >>> Earth.calculate(earth, "less than 44")
+    Answer is: less than 44
+    less than 44 vogons destroy earth
+
+
+    Class-specific connections
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    If connecting via the class attribute, you can leave the instance
+    argument to obtain a class-wide subscription:
+
+    >>> def UN(instance, answer):
+    ...     print("do nothing")
+
+    >>> Earth.calculate.connect(UN)
+
+    >>> earth2 = Earth()
+    >>> earth2.calculate("correct")
+    Answer is: correct
+    do nothing
+
+
+    Disobey the call signature?
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    >>> earth2.calculate(question=42)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    TypeError: calculate() got an unexpected keyword argument 'question'
+
+
+    Default arguments
+    ~~~~~~~~~~~~~~~~~
+
+    On python3 (and on python2 if you have black-magic installed) default
+    arguments work as expected:
+
+    >>> if SUPPORTS_DEFAULT_ARGUMENTS:
+    ...     earth2.calculate()
+    ... else:   # let's cheat for the sake of this doctest:
+    ...     earth2.calculate(43)
+    Answer is: 43
+    do nothing
+
+
+    Help
+    ~~~~
+
+    And check out the help ``help(Earth)`` or ``help(earth.calculate)``, you
+    won't notice a thing (at least if you have black-magic installed).
+    """
+
+    def __init__(self, function, wraps=_wraps):
+        """
+        Create an instance event based on the member function parameter.
+
+        * function -- The function to be wrapped by the decorator.
+        """
+        wrapper = _emitter_method(function, wraps)
+        self.__emit = _event_method_proxy(wrapper, None)
+
+    def __get__(self, instance, owner):
+        """
+        Query event for specific to one instance or class.
+
+        * instance -- The instance of event invoked.
+        * owner -- The owner class.
+        """
+        return self.__emit.__get__(instance, owner)
+
+
+def static_event(function, event_handlers=None, wraps=_wraps):
+    """
+    Decorator for static event functions.
+
+    * function -- templace function (will be executed before event handlers)
+    * event_handlers -- event handler list object to use
+    * wraps -- used to update the wrapper function (like functools.wraps)
+
+    Calling a static_event emits the event, i.e. all registered event
+    handlers are called with the given arguments. Before the event handlers
+    are called, the base function gets a chance to execute.
+
+    You can use `static_event` as a decorator, for example:
+
+    >>> @static_event
+    ... def sig(foo="bar"):
+    ...     '''I'm a docstring!'''
+    ...     print('In sig!')
+    ...     return 'Return value.'
+
+    >>> def handler(foo):
+    ...     print("foo=%s" % foo)
+    >>> sig.connect(handler)
+
+    >>> if SUPPORTS_DEFAULT_ARGUMENTS:
+    ...     sig()
+    ... else:
+    ...     sig('bar')
+    In sig!
+    foo=bar
+    'Return value.'
+
+    >>> sig("hello")
+    In sig!
+    foo=hello
+    'Return value.'
+    """
+    if event_handlers is None:
+        event_handlers = []
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        result = function(*args, **kwargs)
+        _invoke_all(event_handlers, args, kwargs)
         return result
+    wrapper.connect = event_handlers.append
+    wrapper.disconnect = event_handlers.remove
+    return wrapper
