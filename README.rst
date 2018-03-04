@@ -145,13 +145,13 @@ Credits
 Thanks to Jason Orendorff on for the idea on stackoverflow. I also want
 to thank @coldfix and @Moredread for contributions and feedback.
 
-.. |Downloads| image:: https://pypip.in/d/obsub/badge.png
+.. |Downloads| image:: https://img.shields.io/pypi/dm/obsub.svg
    :target: https://pypi.python.org/pypi/obsub/
    :alt: Downloads
-.. |Version| image:: https://pypip.in/v/obsub/badge.png
+.. |Version| image:: https://img.shields.io/pypi/v/obsub.svg
    :target: https://pypi.python.org/pypi/obsub/
    :alt: Latest Version
-.. |License| image:: https://pypip.in/license/obsub/badge.png
+.. |License| image:: https://img.shields.io/pypi/l/obsub.svg
    :target: https://pypi.python.org/pypi/obsub/
    :alt: License
 .. |Build Status| image:: https://api.travis-ci.org/aepsil0n/obsub.png?branch=master
