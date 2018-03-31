@@ -1,7 +1,7 @@
 obsub
 =====
 
-|Build Status| |Coverage| |Version| |Downloads| |License|
+|Build Status| |Coverage| |Version| |License|
 
 Small python module that implements the observer pattern via a
 decorator.
@@ -145,9 +145,6 @@ Credits
 Thanks to Jason Orendorff on for the idea on stackoverflow. I also want
 to thank @coldfix and @Moredread for contributions and feedback.
 
-.. |Downloads| image:: https://img.shields.io/pypi/dm/obsub.svg
-   :target: https://pypi.python.org/pypi/obsub/
-   :alt: Downloads
 .. |Version| image:: https://img.shields.io/pypi/v/obsub.svg
    :target: https://pypi.python.org/pypi/obsub/
    :alt: Latest Version
