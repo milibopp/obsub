@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Faepsil0n%2Fobsub.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Faepsil0n%2Fobsub?ref=badge_shield)
+
 obsub
 =====
 
@@ -155,3 +157,6 @@ to thank @coldfix and @Moredread for contributions and feedback.
    :target: https://travis-ci.org/aepsil0n/obsub
 .. |Coverage| image:: https://coveralls.io/repos/aepsil0n/obsub/badge.png?branch=master
    :target: https://coveralls.io/r/aepsil0n/obsub
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Faepsil0n%2Fobsub.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Faepsil0n%2Fobsub?ref=badge_large)
