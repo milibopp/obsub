@@ -18,7 +18,7 @@ developers.
 - Some fixes to memory handling and tests thereof. This includes a more generic
   handling of the garbage collection process within the test suite to make it
   pass on pypy, too.
-- Massive refactoring of test suite from one very long doctest to more focussed
+- Massive refactoring of test suite from one very long doctest to more focused
   unit tests.
 - The documentation has been converted from Markdown to reStructuredText, since
   it is compatible with both PyPI and GitHub.
