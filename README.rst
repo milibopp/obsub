@@ -1,7 +1,7 @@
 obsub
 =====
 
-|Build Status| |Coverage| |Version| |License|
+|Version| |License|
 
 Small python module that implements the observer pattern via a
 decorator.
@@ -82,42 +82,6 @@ event handler function, like so:
     Stuff foo is handled
 
 
-Continuous integration
-----------------------
-
-**Outdated, not using Travis CI any longer**
-
-For the fun of it, `Travis CI <https://travis-ci.org/milibopp/obsub>`__
-is used for continuous integration. As long as everything is fine, the
-button below should be green and shiny!
-
-|Build Status|
-
-The continuous integration ensures that our tests run on the following
-platforms:
-
--  Python 2.6, 2.7
--  Python 3.2, 3.3
--  pypy
-
-It might also work on Python 2.5, but is not automatically tested with this
-version.
-
-We also track the coverage of our tests with coveralls.io
-
-|Coverage|
-
-Use `coverage <https://pypi.python.org/pypi/coverage>`__ to generate local
-coverage reports like this:
-
-::
-
-    coverage run setup.py nosetests
-
-Note: on some platforms (e.g. Ubuntu) the executable is called
-``python-coverage``.
-
-
 Contribution and feedback
 -------------------------
 
@@ -138,7 +102,6 @@ consistent with PEP 8 guidelines as far as possible and test everything.
 Otherwise, your commit messages should start with a capitalized verb for
 consistency. Unless your modification is completely trivial, also add a message
 body to your commit.
-
 
 
 Credits

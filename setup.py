@@ -17,9 +17,10 @@ except IOError:
 
 setup(
     name='obsub',
-    version='0.2',
+    version='0.2.1',
     description='Implementation of the observer pattern via a decorator',
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     author='Emilia Bopp',
     author_email='contact@ebopp.de',
     url='https://github.com/milibopp/obsub',
