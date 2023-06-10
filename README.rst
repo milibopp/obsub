@@ -12,7 +12,7 @@ This module has been unmaintained since around 2014. The authors have
 moved on to other alternatives to event handling. There is also
 `observed <https://github.com/DanielSank/observed>`_ by @DanielSank, which
 was partially inspired by *obsub*, however, has not seen many updates lately.
-@aepsil0n has been writing with functional reactive programming (FRP), but
+@milibopp has been writing with functional reactive programming (FRP), but
 not for Python.
 
 FRP is a higher-level abstraction than the observer pattern, that essentially
@@ -85,7 +85,9 @@ event handler function, like so:
 Continuous integration
 ----------------------
 
-For the fun of it, `Travis CI <https://travis-ci.org/aepsil0n/obsub>`__
+**Outdated, not using Travis CI any longer**
+
+For the fun of it, `Travis CI <https://travis-ci.org/milibopp/obsub>`__
 is used for continuous integration. As long as everything is fine, the
 button below should be green and shiny!
 
@@ -119,15 +121,15 @@ Note: on some platforms (e.g. Ubuntu) the executable is called
 Contribution and feedback
 -------------------------
 
-*obsub* is developed on `github <https://github.com/aepsil0n/obsub>`__.
+*obsub* is developed on `github <https://github.com/milibopp/obsub>`__.
 
 If you have any questions about this software or encounter bugs, you're welcome
-to open a `new issue on github <https://github.com/aepsil0n/obsub/issues/new>`__.
+to open a `new issue on github <https://github.com/milibopp/obsub/issues/new>`__.
 
 In case you do not want to use github for some reason, you can alternatively
 send an email one of us:
 
-- `Emilia Bopp <Emilia.bopp@aepsil0n.de>`__
+- `Emilia Bopp <contact@ebopp.de>`__
 - `André-Patrick Bubel <code@andre-bubel.de>`__
 - `Thomas Gläßle <t_glaessle@gmx.de>`__
 
@@ -151,7 +153,3 @@ to thank @coldfix and @Moredread for contributions and feedback.
 .. |License| image:: https://img.shields.io/pypi/l/obsub.svg
    :target: https://pypi.python.org/pypi/obsub/
    :alt: License
-.. |Build Status| image:: https://api.travis-ci.org/aepsil0n/obsub.png?branch=master
-   :target: https://travis-ci.org/aepsil0n/obsub
-.. |Coverage| image:: https://coveralls.io/repos/aepsil0n/obsub/badge.png?branch=master
-   :target: https://coveralls.io/r/aepsil0n/obsub

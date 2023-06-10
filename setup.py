@@ -21,8 +21,8 @@ setup(
     description='Implementation of the observer pattern via a decorator',
     long_description=long_description,
     author='Emilia Bopp',
-    author_email='Emilia.bopp@aepsil0n.de',
-    url='https://github.com/aepsil0n/obsub',
+    author_email='contact@ebopp.de',
+    url='https://github.com/milibopp/obsub',
     py_modules=['obsub',],
     classifiers=[
         'Development Status :: 4 - Beta',
